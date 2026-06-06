@@ -81,3 +81,10 @@ class TestRunResponse(TestRunBase):
 
     class Config:
         from_attributes = True
+
+# ==========================================
+# 5. مخططات تسجيل الدخول (Token Schemas)
+# ==========================================
+class Token(BaseModel):
+    access_token: str
+    token_type: str

@@ -4,6 +4,7 @@ from app.db.database import get_db
 from app.models import User
 from app.schemas import UserCreate, UserResponse
 from app.core.security import get_password_hash
+from app.core.oauth2 import get_current_user
 
 # إنشاء كائن الـ Router الخاص بالمستخدمين
 router = APIRouter(
@@ -40,3 +41,9 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user) # لتحديث الكائن والحصول على الـ ID التلقائي من قاعدة البيانات
     
     return new_user
+
+# مسار محمي: عرض بيانات المستخدم الحالي (الملف الشخصي)
+@router.get("/me", response_model=UserResponse)
+def get_user_profile(current_user: User = Depends(get_current_user)):
+    # بما أن المفتش (get_current_user) سمح بالمرور، فهو سيمرر لنا بيانات المستخدم مباشرة
+    return current_user
