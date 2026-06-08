@@ -88,3 +88,24 @@ class TestRunResponse(TestRunBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+# ==========================================
+# 6. مخططات نماذج الذكاء الاصطناعي (AI Models Schemas)
+# ==========================================
+class AIModelBase(BaseModel):
+    name: str
+    version: str
+    provider: str
+    description: str | None = None
+
+class AIModelCreate(AIModelBase):
+    pass
+
+class AIModelResponse(AIModelBase):
+    id: int
+    # تأكد من أنك قمت باستيراد datetime في أعلى الملف إذا لم تكن موجودة:
+    # from datetime import datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
