@@ -5,7 +5,7 @@ from app.db.database import engine, Base, get_db
 import app.models
 
 # 1. استيراد جميع ملفات المسارات (الروترز)
-from app.routers import users, auth, scenarios, ai_models 
+from app.routers import users, auth, scenarios, ai_models, evaluations, test_runs
 
 Base.metadata.create_all(bind=engine)
 
@@ -30,6 +30,8 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(scenarios.router)
 app.include_router(ai_models.router) # تم وضعه في مكانه الصحيح
+app.include_router(evaluations.router)
+app.include_router(test_runs.router)
 
 # 5. المسارات الأساسية
 @app.get("/")

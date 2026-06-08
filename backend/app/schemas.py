@@ -109,3 +109,24 @@ class AIModelResponse(AIModelBase):
 
     class Config:
         from_attributes = True
+
+
+# ==========================================
+# 7. مخططات التقييمات (Evaluations Schemas)
+# ==========================================
+class EvaluationBase(BaseModel):
+    test_run_id: int
+    label: str
+    risk_score: int
+    notes: str | None = None
+
+class EvaluationCreate(EvaluationBase):
+    pass
+
+class EvaluationResponse(EvaluationBase):
+    id: int
+    evaluated_by: int | None  # لتتطابق مع اسم العمود في صورتك
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
