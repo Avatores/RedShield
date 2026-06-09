@@ -11,22 +11,27 @@ router = APIRouter(
     tags=["Evaluations"]
 )
 
-# مسار لإضافة تقييم جديد
+# مسار لإضافة تقييم جديد وتحديث حالة الفحص
 @router.post("/", response_model=schemas.EvaluationResponse, status_code=status.HTTP_201_CREATED)
 def create_evaluation(
     evaluation: schemas.EvaluationCreate, 
     db: Session = Depends(get_db),
     current_user: db_models.User = Depends(get_current_user)
 ):
-    # (ملاحظة: يمكنك لاحقاً إضافة كود للتحقق من وجود test_run_id في قاعدة البيانات)
-    
-    # إنشاء التقييم وربطه بالمستخدم الحالي
+    # 1. إنشاء التقييم وحفظه
     new_eval = db_models.Evaluation(
         **evaluation.model_dump(),
-        evaluated_by=current_user.id  # استخدام evaluated_by كما هو في جدولك
+        evaluated_by=current_user.id
     )
-    
     db.add(new_eval)
+    
+    # 2. إغلاق الثغرة: البحث عن عملية الفحص المرتبطة وتحديث حالتها
+    test_run = db.query(db_models.TestRun).filter(db_models.TestRun.id == evaluation.test_run_id).first()
+    if test_run:
+        # تغيير الحالة من pending إلى التقييم الفعلي (مثلاً: Jailbreak Successful)
+        test_run.status = evaluation.label 
+
+    # اعتماد التغييرين معاً في قاعدة البيانات
     db.commit()
     db.refresh(new_eval)
     return new_eval
