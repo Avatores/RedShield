@@ -6,7 +6,7 @@ import app.models as db_models
 import app.schemas as schemas
 from app.core.oauth2 import get_current_user
 
-# Initialize the AI Models router
+## Initialize the AI Models router
 router = APIRouter(
     prefix="/ai-models",
     tags=["AI Models"]
