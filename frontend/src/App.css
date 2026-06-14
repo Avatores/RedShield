@@ -483,3 +483,115 @@
   max-width: 420px;
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
 }
+
+/* ================= تنسيقات صفحة الفحص اليدوي (Manual Test) ================= */
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.workspace-panel-form, .workspace-panel-results {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.workspace-panel-form h3, .workspace-panel-results h3 {
+  font-size: 16px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  color: var(--text-main);
+}
+
+.btn-run-simulation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 16px;
+  transition: background 0.2s;
+}
+
+.btn-run-simulation:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.btn-run-simulation:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.model-response-box {
+  background-color: var(--bg-main);
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  min-height: 140px;
+  margin-bottom: 20px;
+  font-family: monospace;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pulse-text {
+  animation: pulse 1.5s infinite;
+  color: var(--warning);
+}
+
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.audit-labelling-zone h4 {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.label-buttons-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.audit-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.audit-btn.safe { background-color: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+.audit-btn.unsafe { background-color: rgba(245, 158, 11, 0.1); color: var(--warning); border-color: rgba(245, 158, 11, 0.3); }
+.audit-btn.broken { background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.3); }
+.audit-btn.hallucinate { background-color: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3); }
+
+.audit-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.2);
+}
+
+.audit-success-msg {
+  color: var(--success);
+  font-size: 13px;
+  margin-top: 8px;
+}

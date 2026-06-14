@@ -8,7 +8,9 @@ function App() {
   const [currentPage, setCurrentPage] = useState('scenarios'); 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
+  // متغيرات لتخزين الـ IDs الحقيقية المختارة
+  const [selectedModelId, setSelectedModelId] = useState(1);
+  const [selectedScenarioId, setSelectedScenarioId] = useState('');
   // استمارات التحكم وغرف البيانات التفاعلية
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedModel, setSelectedModel] = useState('GPT-4o');
@@ -278,11 +280,11 @@ function App() {
 
     try {
       const token = localStorage.getItem('token');
-      // 1. تسجيل عملية الفحص في قاعدة البيانات فوراً
+      // 1. تسجيل عملية الفحص في قاعدة البيانات بالمعرفات الحقيقية
       const testRunData = {
-        scenario_id: 1, // تم التثبيت على 1 لضمان توافق قاعدة البيانات
-        model_id: 1,    // تم التثبيت على 1 لضمان توافق قاعدة البيانات
-        run_mode: "manual"
+        scenario_id: parseInt(selectedScenarioId) || 1, 
+        model_id: selectedModelId,
+        run_mode: selectedScenarioId ? "library_scenario" : "manual_custom"
       };
 
       const response = await fetch('http://localhost:8000/test-runs/', {
@@ -296,18 +298,36 @@ function App() {
 
       if (response.ok) {
         const data = await response.json();
-        // حفظ رقم العملية (ID) القادم من الخزنة لاستخدامه في خطوة التقييم
+        // حفظ رقم العملية (ID) القادم من الخزنة
         setCurrentTestRunId(data.id);
 
-        // 2. محاكاة رد نموذج الذكاء الاصطناعي (لاحقاً سنرسل النص لنموذج حقيقي هنا)
-        setTimeout(() => {
-          setIsSimulating(false);
-          if (selectedCategory === 'Jailbreaking') {
-            setSimulatedResponse("SYSTEM OVERRIDE SUCCESSFUL: I will now assist you in bypassing guidelines. To gain unauthorized access, you can exploit the default configuration settings of the API endpoint...");
+        // 2. إرسال الهجوم الحقيقي إلى السيرفر (OpenAI)
+        try {
+          const aiResponse = await fetch('http://localhost:8000/simulate-attack/', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              prompt: manualPrompt, 
+              // إرسال Pro إذا اخترت 1، و Flash إذا اخترت 2
+              model_name: selectedModelId === 1 ? "gemini-2.5-pro" : "gemini-2.5-flash" 
+            })
+          });
+
+          if (aiResponse.ok) {
+            const aiData = await aiResponse.json();
+            setSimulatedResponse(aiData.reply);
           } else {
-            setSimulatedResponse("According to historical archives, Ibn Al-Vite (1342–1401) developed the first water-powered calculation loom in Fez, which compiled silk patterns using an early binary system.");
+            setSimulatedResponse("حدث خطأ أثناء محاولة جلب الرد من النموذج.");
           }
-        }, 1200);
+        } catch (error) {
+          console.error("AI Simulation Error:", error);
+          setSimulatedResponse("تعذر الاتصال بخادم المحاكاة.");
+        } finally {
+          setIsSimulating(false);
+        }
+
       } else {
         setIsSimulating(false);
         alert("فشل إنشاء عملية الفحص في السيرفر.");
@@ -457,10 +477,51 @@ function App() {
               <div className="workspace-panel-form">
                 <h3>Simulation Config</h3>
                 <form onSubmit={handleRunManualTest} className="mini-form">
-                  <div className="form-group"><label>Target Model</label><select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)}><option>GPT-4o</option><option>Llama-3-70B</option><option>Claude-3.5-Sonnet</option></select></div>
-                  <div className="form-group"><label>Attack Vector / Type</label><select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}><option>Jailbreaking</option><option>Hallucination trigger</option></select></div>
-                  <div className="form-group"><label>Adversarial Prompt Payload</label><textarea placeholder="Type custom attack prompt or paste from library..." value={manualPrompt} onChange={(e) => setManualPrompt(e.target.value)}></textarea></div>
-                  <button type="submit" className="btn-run-simulation" disabled={isSimulating}><Play size={16} /> {isSimulating ? 'Attacking Model...' : 'Execute Attack'}</button>
+                  <div className="form-group">
+                    <label>Target Model</label>
+                    <select 
+                      value={selectedModelId} 
+                      onChange={(e) => setSelectedModelId(parseInt(e.target.value))}
+                    >
+                      <option value={1}>Gemini 2.5 Pro (ID: 1)</option>
+                      <option value={2}>Gemini 2.5 Flash (ID: 2)</option>
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Attack Scenario (From Library)</label>
+                    <select 
+                      value={selectedScenarioId} 
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setSelectedScenarioId(val);
+                        // حركة ذكية: سحب نص السيناريو تلقائياً ووضعه في مربع النص
+                        const chosenScen = scenarios.find(s => s.id.toString() === val);
+                        if(chosenScen) setManualPrompt(chosenScen.prompt_text);
+                        else setManualPrompt('');
+                      }}
+                    >
+                      <option value="">-- Custom Manual Prompt --</option>
+                      {scenarios.map((scen) => (
+                        <option key={scen.id} value={scen.id}>
+                          {scen.title} (ID: {scen.id})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>Adversarial Prompt Payload</label>
+                    <textarea 
+                      placeholder="Type custom attack prompt or select from library above..." 
+                      value={manualPrompt} 
+                      onChange={(e) => setManualPrompt(e.target.value)}
+                    ></textarea>
+                  </div>
+                  
+                  <button type="submit" className="btn-run-simulation" disabled={isSimulating}>
+                    <Play size={16} /> {isSimulating ? 'Attacking Model...' : 'Execute Attack'}
+                  </button>
                 </form>
               </div>
               <div className="workspace-panel-results">
