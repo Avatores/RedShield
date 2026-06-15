@@ -11,28 +11,23 @@ router = APIRouter(
     tags=["Test Runs"]
 )
 
-# مسار لإنشاء عملية فحص جديدة
 @router.post("/", response_model=schemas.TestRunResponse, status_code=status.HTTP_201_CREATED)
 def create_test_run(
     test_run: schemas.TestRunCreate, 
     db: Session = Depends(get_db),
     current_user: db_models.User = Depends(get_current_user)
 ):
-    # 1. التحقق من أن سيناريو الهجوم موجود
     scenario = db.query(db_models.AttackScenario).filter(db_models.AttackScenario.id == test_run.scenario_id).first()
     if not scenario:
         raise HTTPException(status_code=404, detail="Attack Scenario not found")
 
-    # 2. التحقق من أن النموذج الهدف موجود
     model = db.query(db_models.AIModel).filter(db_models.AIModel.id == test_run.model_id).first()
     if not model:
         raise HTTPException(status_code=404, detail="AI Model not found")
 
-    # 3. إنشاء عملية الفحص وحفظها
-    # نستخدم model_dump() لفك البيانات، ونضيف الحالة الافتراضية ورقم المستخدم
     new_run = db_models.TestRun(
         **test_run.model_dump(),
-        status="pending",  # حالة الفحص المبدئية
+        status="pending",  
         executed_by=current_user.id
     )
     
@@ -41,7 +36,6 @@ def create_test_run(
     db.refresh(new_run)
     return new_run
 
-# مسار لعرض جميع عمليات الفحص
 @router.get("/", response_model=List[schemas.TestRunResponse])
 def get_all_test_runs(
     db: Session = Depends(get_db),

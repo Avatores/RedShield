@@ -6,26 +6,22 @@ import app.models as models
 import app.schemas as schemas
 from app.core.oauth2 import get_current_user
 
-# إنشاء الموجه الخاص بالسيناريوهات
 router = APIRouter(
     prefix="/scenarios",
     tags=["سيناريوهات الهجوم (Scenarios)"]
 )
 
-# ==========================================
-# 1. مسار إضافة سيناريو جديد (مسار محمي)
-# ==========================================
+
 @router.post("/", response_model=schemas.AttackScenarioResponse, status_code=status.HTTP_201_CREATED)
 def create_scenario(
     scenario: schemas.AttackScenarioCreate, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user) # هنا يقف المفتش الأمني
+    current_user: models.User = Depends(get_current_user)
 ):
-    # تجهيز السيناريو للرفع لقاعدة البيانات
-    # استخدمنا **scenario.model_dump() لفك ضغط البيانات القادمة من المستخدم تلقائياً
+
     new_scenario = models.AttackScenario(
         **scenario.model_dump(),
-        created_by=current_user.id # الربط السحري: نأخذ رقم المستخدم من التذكرة مباشرة!
+        created_by=current_user.id 
     )
     
     db.add(new_scenario)
@@ -34,14 +30,11 @@ def create_scenario(
     
     return new_scenario
 
-# ==========================================
-# 2. مسار عرض جميع السيناريوهات (مسار محمي)
-# ==========================================
+
 @router.get("/", response_model=List[schemas.AttackScenarioResponse])
 def get_all_scenarios(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user) # المفتش الأمني أيضاً
+    current_user: models.User = Depends(get_current_user) 
 ):
-    # جلب جميع السيناريوهات من قاعدة البيانات
     scenarios = db.query(models.AttackScenario).all()
     return scenarios

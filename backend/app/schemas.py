@@ -3,7 +3,7 @@ from typing import Optional, List
 from datetime import datetime
 
 # ==========================================
-# 1. مخططات الأدوار (Role Schemas)
+# 1.(Role Schemas)
 # ==========================================
 class RoleBase(BaseModel):
     name: str
@@ -19,7 +19,7 @@ class RoleResponse(RoleBase):
 
 
 # ==========================================
-# 2. مخططات المستخدمين (User Schemas)
+# 2. (User Schemas)
 # ==========================================
 class UserBase(BaseModel):
     full_name: str
@@ -30,7 +30,7 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=6, description="كلمة المرور يجب ألا تقل عن 6 خانات")
     role_id: Optional[int] = None
 
-# يستخدم لإرسال بيانات المستخدم للـ Frontend (بدون الـ Password لأمان البيانات)
+
 class UserResponse(UserBase):
     id: int
     role_id: Optional[int]
@@ -41,7 +41,7 @@ class UserResponse(UserBase):
 
 
 # ==========================================
-# 3. مخططات سيناريوهات الهجوم (Attack Scenario Schemas)
+# 3.(Attack Scenario Schemas)
 # ==========================================
 class AttackScenarioBase(BaseModel):
     title: str
@@ -63,19 +63,19 @@ class AttackScenarioResponse(AttackScenarioBase):
 
 
 # ==========================================
-# 4. مخططات عمليات الفحص (Test Run Schemas)
+# 4.(Test Run Schemas)
 # ==========================================
 class TestRunBase(BaseModel):
     scenario_id: int
     model_id: int
-    run_mode: str  # مثل: automated أو manual
+    run_mode: str  
 
 class TestRunCreate(TestRunBase):
     pass
 
 class TestRunResponse(TestRunBase):
     id: int
-    status: str  # pending, running, completed, failed
+    status: str  
     executed_by: Optional[int]
     created_at: datetime
 
@@ -83,14 +83,14 @@ class TestRunResponse(TestRunBase):
         from_attributes = True
 
 # ==========================================
-# 5. مخططات تسجيل الدخول (Token Schemas)
+# 5.(Token Schemas)
 # ==========================================
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 # ==========================================
-# 6. مخططات نماذج الذكاء الاصطناعي (AI Models Schemas)
+# 6.(AI Models Schemas)
 # ==========================================
 class AIModelBase(BaseModel):
     name: str
@@ -103,8 +103,6 @@ class AIModelCreate(AIModelBase):
 
 class AIModelResponse(AIModelBase):
     id: int
-    # تأكد من أنك قمت باستيراد datetime في أعلى الملف إذا لم تكن موجودة:
-    # from datetime import datetime
     created_at: datetime
 
     class Config:
@@ -112,7 +110,7 @@ class AIModelResponse(AIModelBase):
 
 
 # ==========================================
-# 7. مخططات التقييمات (Evaluations Schemas)
+# 7.(Evaluations Schemas)
 # ==========================================
 class EvaluationBase(BaseModel):
     test_run_id: int
@@ -125,7 +123,7 @@ class EvaluationCreate(EvaluationBase):
 
 class EvaluationResponse(EvaluationBase):
     id: int
-    evaluated_by: int | None  # لتتطابق مع اسم العمود في صورتك
+    evaluated_by: int | None  
     created_at: datetime
 
     class Config:

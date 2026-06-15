@@ -3,14 +3,14 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.database import Base
 
-# 1. نموذج الأدوار 
+# 1. Roles model
 class Role(Base):
     __tablename__ = "roles"
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, nullable=False)
 
-# 2. نموذج المستخدمين (Users)
+# 2. Users model
 class User(Base):
     __tablename__ = "users"
     
@@ -21,8 +21,7 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.id", ondelete="SET NULL"))
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# 3. نموذج نماذج الذكاء الاصطناعي (Models)
-# أسميناه AIModel بدلاً من Model لتجنب التعارض مع مكتبات بايثون الأخرى
+# 3. Ai Models model
 class AIModel(Base):
     __tablename__ = "models"
     
@@ -36,7 +35,7 @@ class AIModel(Base):
     description = Column(String, nullable=True) 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# 4. نموذج سيناريوهات الهجوم (Attack Scenarios)
+# 4. Attack Scenarios model
 class AttackScenario(Base):
     __tablename__ = "attack_scenarios"
     
@@ -49,7 +48,7 @@ class AttackScenario(Base):
     created_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# 5. نموذج عمليات الفحص (Test Runs)
+# 5. Test run model
 class TestRun(Base):
     __tablename__ = "test_runs"
     
@@ -61,7 +60,7 @@ class TestRun(Base):
     executed_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# 6. نموذج الاستجابات (Responses)
+# 6. Responses model
 class Response(Base):
     __tablename__ = "responses"
     
@@ -71,7 +70,7 @@ class Response(Base):
     raw_output = Column(Text)
     latency_ms = Column(Integer)
 
-# 7. نموذج التقييمات (Evaluations)
+# 7. Evaluations model
 class Evaluation(Base):
     __tablename__ = "evaluations"
     
