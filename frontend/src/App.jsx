@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, Terminal, CheckCircle2, AlertTriangle, Layers, PlusCircle, Play, LogIn, LogOut } from 'lucide-react';
+import { ShieldAlert, Terminal, CheckCircle2, AlertTriangle, Layers, PlusCircle, Play, LogIn, LogOut, Trash2 } from 'lucide-react';
 import './App.css';
 
 function App() {
   // إدارة حالة تسجيل الدخول والملاحة بين الصفحات الأربعة
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [currentPage, setCurrentPage] = useState('scenarios'); 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -270,6 +270,31 @@ function App() {
     }
   };
 
+  const handleDeleteScenario = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this scenario?")) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:8000/scenarios/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        // تحديث القائمة فوراً بعد الحذف
+        fetchScenarios();
+      } else {
+        alert("فشل حذف السيناريو من السيرفر.");
+      }
+    } catch (error) {
+      console.error("Error deleting scenario:", error);
+      alert("حدث خطأ أثناء الاتصال بالسيرفر.");
+    }
+  };
+
+
   const handleRunManualTest = async (e) => {
     e.preventDefault();
     if (!manualPrompt.trim()) return;
@@ -310,8 +335,9 @@ function App() {
             },
             body: JSON.stringify({ 
               prompt: manualPrompt, 
-              // إرسال Pro إذا اخترت 1، و Flash إذا اخترت 2
-              model_name: selectedModelId === 1 ? "gemini-2.5-pro" : "gemini-2.5-flash" 
+              model_name: selectedModelId === 1 ? "gemini-2.5-pro" : 
+                          selectedModelId === 2 ? "gemini-2.5-flash" : 
+                          "llama-3.1-8b-instant" 
             })
           });
 
@@ -457,9 +483,26 @@ function App() {
             <section className="scenarios-grid">
               {scenarios.map((scen) => (
                 <div className="scenario-card" key={scen.id}>
-                  <div className="scen-card-header"><span className="scen-id">{scen.id}</span><span className={`badge badge-${scen.severity.toLowerCase()}`}>{scen.severity}</span></div>
-                  <h3>{scen.title}</h3><span className="scen-cat">{scen.category}</span>
+                  
+                  {/* الترويسة الجديدة: تحتوي على زر الحذف وتقييم الخطورة فقط (بدون الـ ID) */}
+                  <div className="scen-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span className={`badge badge-${scen.severity.toLowerCase()}`}>{scen.severity}</span>
+                    </div>
+                    <button 
+                      onClick={() => handleDeleteScenario(scen.id)} 
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }}
+                      title="Delete Scenario"
+                    >
+                      <Trash2 size={18} color="#ef4444" />
+                    </button>
+                  </div>
+
+                  {/* المحتوى الأساسي للسيناريو الذي سنعيده للظهور */}
+                  <h3>{scen.title}</h3>
+                  <span className="scen-cat">{scen.category}</span>
                   <div className="scen-payload"><code>{scen.prompt_text}</code></div>
+                  
                 </div>
               ))}
             </section>
@@ -485,6 +528,7 @@ function App() {
                     >
                       <option value={1}>Gemini 2.5 Pro (ID: 1)</option>
                       <option value={2}>Gemini 2.5 Flash (ID: 2)</option>
+                      <option value={3}>Llama 3 (Groq) (ID: 3)</option>
                     </select>
                   </div>
                   

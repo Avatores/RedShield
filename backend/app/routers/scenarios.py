@@ -8,7 +8,7 @@ from app.core.oauth2 import get_current_user
 
 router = APIRouter(
     prefix="/scenarios",
-    tags=["سيناريوهات الهجوم (Scenarios)"]
+    tags=["(Scenarios)"]
 )
 
 
