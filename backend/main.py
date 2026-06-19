@@ -5,9 +5,10 @@ from app.db.database import engine, Base, get_db
 import google.generativeai as genai
 from groq import Groq
 from pydantic import BaseModel
-from app.models import AttackScenario
+from app.models import AttackScenario, User
 from app.routers import users, auth, scenarios, ai_models, evaluations, test_runs
 import os
+from app.core.security import get_password_hash
 
 Base.metadata.create_all(bind=engine)
 
@@ -45,6 +46,11 @@ class AttackPayload(BaseModel):
     prompt: str
     model_name: str
 
+class UserCreate(BaseModel):
+    full_name: str
+    email: str
+    password: str
+
 @app.post("/simulate-attack/")
 async def simulate_attack(payload: AttackPayload):
     try:
@@ -71,6 +77,30 @@ async def simulate_attack(payload: AttackPayload):
     except Exception as e:
         return {"reply": f"فشل الاتصال بمزود الخدمة: {str(e)}"}
     
+@app.post("/register")
+async def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    # 1. التحقق من الإيميل
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="البريد الإلكتروني مستخدم مسبقاً في النظام.")
+    
+    # 2. تشفير كلمة المرور باستخدام دالة النظام المتوافقة مع passlib
+    hashed_password = get_password_hash(user.password)
+    
+    # 3. بناء الهوية
+    new_user = User(
+        full_name=user.full_name,
+        email=user.email,
+        password_hash=hashed_password,
+        role_id=2  
+    )
+    
+    db.add(new_user)
+    db.commit()
+    
+    return {"message": "تم إنشاء حساب المشغل بنجاح"}
+
+
 @app.delete("/scenarios/{scenario_id}")
 async def delete_scenario(scenario_id: int, db: Session = Depends(get_db)):
     # استخدمنا AttackScenario مباشرة

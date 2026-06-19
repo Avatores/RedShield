@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Terminal, CheckCircle2, AlertTriangle, Layers, PlusCircle, Play, LogIn, LogOut, Trash2 } from 'lucide-react';
+import { Toaster, toast } from 'react-hot-toast';
 import './App.css';
 
 function App() {
-  // إدارة حالة تسجيل الدخول والملاحة بين الصفحات الأربعة
+  // إدارة حالة تسجيل الدخول والملاحة
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const [publicView, setPublicView] = useState('landing');
   const [currentPage, setCurrentPage] = useState('scenarios'); 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  // متغيرات لتخزين الـ IDs الحقيقية المختارة
+  const [regName, setRegName] = useState('');
+  const [regEmail, setRegEmail] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  
+  // متغيرات لتخزين الـ IDs
   const [selectedModelId, setSelectedModelId] = useState(1);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
-  // استمارات التحكم وغرف البيانات التفاعلية
+  
+  // استمارات التحكم وغرف البيانات
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedModel, setSelectedModel] = useState('GPT-4o');
   const [selectedCategory, setSelectedCategory] = useState('Jailbreaking');
@@ -27,42 +34,29 @@ function App() {
     prompt: ''
   });
 
-  // السيناريوهات المعتمدة من الفريق
   const [scenarios, setScenarios] = useState([]);
-  
-  // دالة لجلب السيناريوهات من الباك إند
+  const [recentTests, setRecentTests] = useState([]);
+
   const fetchScenarios = async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:8000/scenarios/', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`, // إرفاق التذكرة الأمنية
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
 
       if (response.ok) {
         const data = await response.json();
-        setScenarios(data); // تخزين السيناريوهات القادمة من قاعدة البيانات
+        setScenarios(data);
       }
     } catch (error) {
       console.error("Error fetching scenarios:", error);
     }
   };
 
-  // تشغيل دالة الجلب تلقائياً بمجرد تسجيل الدخول بنجاح
-  useEffect(() => {
-    if (isLoggedIn) {
-      fetchScenarios();
-    }
-  }, [isLoggedIn]);
-
-  // جدول النتائج والتجارب الأخيرة لصفحة الـ Result
-  // تحويل مصفوفة النتائج إلى مصفوفة فارغة لاستقبال بيانات الباك إند
-  const [recentTests, setRecentTests] = useState([]);
-
-  // دالة لجلب عمليات الفحص (Test Runs) من الباك إند
   const fetchTestRuns = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -76,24 +70,22 @@ function App() {
 
       if (response.ok) {
         const data = await response.json();
-        setRecentTests(data); // تخزين العمليات الحقيقية في الـ State
+        setRecentTests(data);
       }
     } catch (error) {
       console.error("Error fetching test runs:", error);
     }
   };
 
-  // تحديث الـ useEffect الحالي ليشمل جلب عمليات الفحص أيضاً عند تسجيل الدخول
   useEffect(() => {
     if (isLoggedIn) {
       fetchScenarios();
-      fetchTestRuns(); // جلب العمليات فور الدخول للوحة التحكم
+      fetchTestRuns();
     }
   }, [isLoggedIn]);
 
-  // تأثير تحريك الشبكة العصبية (Particle Network) في خلفية صفحة الدخول
+  // تأثير تحريك الشبكة العصبية في الخلفية
   useEffect(() => {
-    // حماية أساسية لمنع تشغيل الأنيميشن في الخلفية بعد تسجيل الدخول
     if (isLoggedIn) return; 
 
     const canvas = document.getElementById('login-canvas');
@@ -187,18 +179,18 @@ function App() {
     };
   }, [isLoggedIn]);
 
-  // دالة تسجيل الدخول (مرتبطة بالباك إند)
+  // دوال العمليات (تم إضافة إشعارات Toast الاحترافية)
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
 
+    const toastId = toast.loading('Authenticating...');
+
     try {
-      // تجهيز البيانات بصيغة Form (لأن نظام OAuth2 في FastAPI يطلبها بهذا الشكل)
       const formData = new FormData();
       formData.append('username', username);
       formData.append('password', password);
 
-      // إرسال الطلب إلى سيرفر الباك إند
       const response = await fetch('http://localhost:8000/login', {
         method: 'POST',
         body: formData,
@@ -206,37 +198,67 @@ function App() {
 
       if (response.ok) {
         const data = await response.json();
-        // حفظ التذكرة (Token) في المتصفح لاستخدامها لاحقاً في الطلبات المحمية
         localStorage.setItem('token', data.access_token);
-        
-        // تحويل المستخدم للوحة التحكم
         setIsLoggedIn(true);
         setCurrentPage('scenarios');
+        toast.success('Login successful!', { id: toastId });
       } else {
-        // في حال كانت كلمة المرور خاطئة
-        alert('بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى.');
+        toast.error('Incorrect login details, please try again.', { id: toastId });
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('فشل الاتصال بالسيرفر. تأكد من أن سيرفر الباك إند يعمل.');
+      toast.error('فشل الاتصال بالسيرفر. تأكد من عمل الباك إند.', { id: toastId });
     }
   };
 
-  // دالة تسجيل الخروج (مسح التذكرة من المتصفح)
+  const handleRegister = async (e) => {
+  e.preventDefault();
+  if (!regName || !regEmail || !regPassword) return;
+
+  const toastId = toast.loading('جاري إنشاء الهوية الأمنية...');
+
+  try {
+    const response = await fetch('http://localhost:8000/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: regName,
+        email: regEmail,
+        password: regPassword
+      })
+    });
+
+    if (response.ok) {
+      toast.success('تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.', { id: toastId });
+      // تفريغ الحقول وتوجيه المستخدم لصفحة الدخول
+      setRegName(''); setRegEmail(''); setRegPassword('');
+      setPublicView('login'); 
+    } else {
+      const errData = await response.json();
+      toast.error(errData.detail || 'فشل إنشاء الحساب.', { id: toastId });
+    }
+  } catch (error) {
+    console.error("Register error:", error);
+    toast.error('حدث خطأ أثناء الاتصال بالخادم.', { id: toastId });
+  }
+};
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsLoggedIn(false);
     setUsername('');
     setPassword('');
+    toast.success('Log out');
   };
 
   const handleAddScenario = async (e) => {
     e.preventDefault();
     if (!newScenario.name || !newScenario.prompt) return;
 
+    const toastId = toast.loading('جاري حفظ السيناريو...');
+
     try {
       const token = localStorage.getItem('token');
-      // تجهيز البيانات بالأسماء التي تتوقعها قاعدة البيانات (title و prompt_text)
       const scenarioData = {
         title: newScenario.name,
         description: "تمت إضافته من الواجهة الأمامية",
@@ -255,45 +277,74 @@ function App() {
       });
 
       if (response.ok) {
-        // إعادة جلب القائمة المحدثة من السيرفر مباشرة لضمان مطابقة البيانات
         await fetchScenarios();
-        
-        // إعادة تصفير الاستمارة وإغلاقها
         setNewScenario({ name: '', category: 'Jailbreaking', severity: 'High', prompt: '' });
         setShowAddForm(false);
+        toast.success('The scenario has been successfully added!', { id: toastId });
       } else {
-        alert("فشل حفظ السيناريو في قاعدة البيانات.");
+        toast.error('فشل حفظ السيناريو في قاعدة البيانات.', { id: toastId });
       }
     } catch (error) {
       console.error("Error adding scenario:", error);
-      alert("حدث خطأ أثناء الاتصال بالسيرفر.");
+      toast.error('حدث خطأ أثناء الاتصال بالسيرفر.', { id: toastId });
     }
   };
 
-  const handleDeleteScenario = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this scenario?")) return;
-    
+  // 1. الدالة التي تقوم بالحذف الفعلي (تتنفذ فقط إذا وافق المستخدم)
+  const confirmDeleteScenario = async (id) => {
+    const toastId = toast.loading('جاري الحذف...');
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`http://localhost:8000/scenarios/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
-        // تحديث القائمة فوراً بعد الحذف
         fetchScenarios();
+        toast.success('تم حذف السيناريو بنجاح!', { id: toastId });
       } else {
-        alert("فشل حذف السيناريو من السيرفر.");
+        toast.error('فشل حذف السيناريو من السيرفر.', { id: toastId });
       }
     } catch (error) {
       console.error("Error deleting scenario:", error);
-      alert("حدث خطأ أثناء الاتصال بالسيرفر.");
+      toast.error('حدث خطأ أثناء الاتصال بالسيرفر.', { id: toastId });
     }
   };
 
+  // 2. دالة عرض رسالة التأكيد الأنيقة (بديل window.confirm)
+  const handleDeleteScenario = (id) => {
+    toast((t) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '250px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}>
+          <AlertTriangle size={20} />
+          <span style={{ fontWeight: '600', fontSize: '16px' }}>Confirm Deletion</span>
+        </div>
+        <span style={{ color: '#d1d5db', fontSize: '14px' }}>Are you sure you want to permanently delete this scenario?</span>
+        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '5px' }}>
+          <button
+            onClick={() => toast.dismiss(t.id)}
+            style={{ padding: '6px 12px', background: 'transparent', color: '#9ca3af', border: '1px solid #4b5563', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              toast.dismiss(t.id); // إخفاء الرسالة
+              confirmDeleteScenario(id); // تنفيذ الحذف
+            }}
+            style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+          >
+            Yes, Delete
+          </button>
+        </div>
+      </div>
+    ), {
+      duration: Infinity, // الرسالة ستبقى ظاهرة حتى يضغط المستخدم على أحد الزرين
+      position: 'top-center',
+      style: { background: '#1f2937', border: '1px solid #374151', color: '#fff' }
+    });
+  };
 
   const handleRunManualTest = async (e) => {
     e.preventDefault();
@@ -302,10 +353,10 @@ function App() {
     setIsSimulating(true);
     setSimulatedResponse('');
     setEvaluationLabel('');
+    const toastId = toast.loading('Initializing attack sequence...');
 
     try {
       const token = localStorage.getItem('token');
-      // 1. تسجيل عملية الفحص في قاعدة البيانات بالمعرفات الحقيقية
       const testRunData = {
         scenario_id: parseInt(selectedScenarioId) || 1, 
         model_id: selectedModelId,
@@ -323,10 +374,9 @@ function App() {
 
       if (response.ok) {
         const data = await response.json();
-        // حفظ رقم العملية (ID) القادم من الخزنة
         setCurrentTestRunId(data.id);
+        toast.success('Attack initialized, waiting for model response...', { id: toastId });
 
-        // 2. إرسال الهجوم الحقيقي إلى السيرفر (OpenAI)
         try {
           const aiResponse = await fetch('http://localhost:8000/simulate-attack/', {
             method: 'POST',
@@ -346,34 +396,36 @@ function App() {
             setSimulatedResponse(aiData.reply);
           } else {
             setSimulatedResponse("حدث خطأ أثناء محاولة جلب الرد من النموذج.");
+            toast.error('Model response error');
           }
         } catch (error) {
           console.error("AI Simulation Error:", error);
           setSimulatedResponse("تعذر الاتصال بخادم المحاكاة.");
+          toast.error('Simulation server offline');
         } finally {
           setIsSimulating(false);
         }
 
       } else {
         setIsSimulating(false);
-        alert("فشل إنشاء عملية الفحص في السيرفر.");
+        toast.error('فشل إنشاء عملية الفحص في السيرفر.', { id: toastId });
       }
     } catch (error) {
       console.error("Error creating test run:", error);
       setIsSimulating(false);
-      alert("حدث خطأ في الاتصال بالخادم.");
+      toast.error('حدث خطأ في الاتصال بالخادم.', { id: toastId });
     }
   };
 
   const handleSaveEvaluation = async (label) => {
     if (!currentTestRunId) {
-      alert("لا توجد عملية فحص حالية لتقييمها!");
+      toast.error("لا توجد عملية فحص حالية لتقييمها!");
       return;
     }
 
     setEvaluationLabel(label);
+    const toastId = toast.loading('Saving audit log...');
     
-    // تحويل التقييم النصي إلى رقم خطورة (Risk Score) برمجي
     let riskScore = 1;
     if (label === 'Jailbreak Successful' || label === 'Unsafe') riskScore = 9;
     else if (label === 'Hallucination Triggered') riskScore = 5;
@@ -381,7 +433,7 @@ function App() {
     try {
       const token = localStorage.getItem('token');
       const evalData = {
-        test_run_id: currentTestRunId, // ربط التقييم برقم العملية
+        test_run_id: currentTestRunId,
         label: label,
         risk_score: riskScore,
         notes: `تم التقييم اليدوي من قبل المشغل بالنتيجة: ${label}`
@@ -397,50 +449,134 @@ function App() {
       });
 
       if (response.ok) {
-        // تحديث جدول صفحة (Result Page) بصمت في الخلفية
         await fetchTestRuns();
+        toast.success(`Audit Log Saved: ${label}`, { id: toastId });
       } else {
-        alert("فشل حفظ التقييم في السيرفر.");
+        toast.error("فشل حفظ التقييم في السيرفر.", { id: toastId });
       }
     } catch (error) {
       console.error("Error saving evaluation:", error);
-      alert("حدث خطأ أثناء حفظ التقييم.");
+      toast.error("حدث خطأ أثناء حفظ التقييم.", { id: toastId });
     }
   };
 
-  // ================= 1. PAGE 1: LOGIN ENVIRONMENT =================
+  // ================= PAGE 1: LOGIN =================
+  // ================= الصفحات العامة (قبل تسجيل الدخول) =================
   if (!isLoggedIn) {
     return (
-      <div className="login-container">
-        <canvas id="login-canvas"></canvas>
+      <div className="public-container">
+        <Toaster position="bottom-right" reverseOrder={false} />
+        {/* خلفية الشبكة العصبية تعمل على كل الصفحات العامة */}
+        <canvas id="login-canvas"></canvas> 
         
-        <div className="login-card">
-          <div className="login-header">
-            <ShieldAlert className="icon-primary" size={40} />
-            <h2>RedShield <span>AI Red Teaming Platform</span></h2>
-            <p>Sign in to access the security testing environment</p>
+        {/* شريط التنقل العلوي */}
+        <nav className="public-nav">
+          <div className="logo-area" onClick={() => setPublicView('landing')} style={{cursor: 'pointer'}}>
+            <ShieldAlert className="icon-primary" size={28} />
+            <h2>RedShield</h2>
           </div>
-          <form onSubmit={handleLogin} className="mini-form">
-            <div className="form-group">
-              <label>Operator Username</label>
-              <input type="text" placeholder="e.g., admin_sec" value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <div className="nav-actions">
+            {publicView !== 'landing' && (
+              <button className="btn-ghost" onClick={() => setPublicView('landing')}>Home</button>
+            )}
+            <button className="btn-outline" onClick={() => setPublicView('login')}>Log In</button>
+            <button className="btn-primary" onClick={() => setPublicView('register')}>Sign Up</button>
+          </div>
+        </nav>
+
+        {/* 1. صفحة الهبوط (Landing Page) */}
+        {publicView === 'landing' && (
+          <div className="landing-content">
+            <div className="hero-section">
+              <div className="hero-badge">AI Security Starts Before Deployment</div>
+              <h1 className="hero-title">Test AI before<br/><span>attackers do.</span></h1>
+              <p className="hero-subtitle">
+                Built for AI red teaming and security testing to simulate attacks, 
+                audit model responses, and uncover vulnerabilities.
+              </p>
+              <div className="hero-buttons">
+                <button className="btn-primary-large" onClick={() => setPublicView('register')}>Start Testing Now</button>
+                <button className="btn-secondary-large" onClick={() => setPublicView('login')}>Access Workspace</button>
+              </div>
             </div>
-            <div className="form-group">
-              <label>Security Token / Password</label>
-              <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+
+            <div className="features-grid">
+              <div className="feature-card">
+                <Terminal size={32} className="text-primary" />
+                <h3>Adversarial Simulation</h3>
+                <p>Deploy advanced jailbreaks and prompt injections to test AI boundaries.</p>
+              </div>
+              <div className="feature-card">
+                <AlertTriangle size={32} className="text-danger" />
+                <h3>Vulnerability Auditing</h3>
+                <p>Log, label, and analyze hallucination triggers and unsafe AI behaviors.</p>
+              </div>
+              <div className="feature-card">
+                <Layers size={32} className="text-success" />
+                <h3>Multi-Model Support</h3>
+                <p>Test Gemini, Llama, and GPT architectures simultaneously in one workspace.</p>
+              </div>
             </div>
-            <button type="submit" className="btn-login">
-              <LogIn size={16} /> Authenticate Session
-            </button>
-          </form>
-        </div>
+          </div>
+        )}
+
+        {/* 2. صفحة تسجيل الدخول (Login) */}
+        {publicView === 'login' && (
+          <div className="auth-card">
+            <div className="login-header">
+              <ShieldAlert className="icon-primary" size={40} />
+              <h2>Welcome Back</h2>
+              <p>Access your RedShield workspace</p>
+            </div>
+            <form onSubmit={handleLogin} className="mini-form">
+              <div className="form-group">
+                <label>Username</label>
+                <input type="text" placeholder="e.g., admin_sec" value={username} onChange={(e) => setUsername(e.target.value)} required />
+              </div>
+              <div className="form-group">
+                <label>Password</label>
+                <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              </div>
+              <button type="submit" className="btn-login"><LogIn size={16} /> Authenticate</button>
+            </form>
+            <p className="auth-switch">Don't have an account? <span onClick={() => setPublicView('register')}>Sign up here</span></p>
+          </div>
+        )}
+
+        {/* 3. صفحة إنشاء حساب (Register) - الواجهة فقط حالياً */}
+        {publicView === 'register' && (
+          <div className="auth-card">
+            <div className="login-header">
+              <CheckCircle2 className="icon-success" size={40} />
+              <h2>Create Account</h2>
+              <p>Join the Red Team platform</p>
+            </div>
+            <form className="mini-form" onSubmit={handleRegister}>
+             <div className="form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="Your Name" value={regName} onChange={(e) => setRegName(e.target.value)} required />
+             </div>
+             <div className="form-group">
+               <label>Email</label>
+               <input type="email" placeholder="email@example.com" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required />
+             </div>
+             <div className="form-group">
+               <label>Password</label>
+               <input type="password" placeholder="••••••••" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required />
+             </div>
+             <button type="submit" className="btn-login" style={{background: '#10b981'}}>Create Operator Profile</button>
+            </form>
+            <p className="auth-switch">Already have an account? <span onClick={() => setPublicView('login')}>Log in here</span></p>
+          </div>
+        )}
       </div>
     );
   }
 
-  // ================= لوحة التحكم الأساسية بعد تسجيل الدخول بنجاح =================
+  // ================= DASHBOARD =================
   return (
     <div className="dashboard-layout">
+      <Toaster position="bottom-right" reverseOrder={false} />
       <aside className="sidebar">
         <div className="logo-area">
           <ShieldAlert className="icon-primary" size={28} />
@@ -483,8 +619,6 @@ function App() {
             <section className="scenarios-grid">
               {scenarios.map((scen) => (
                 <div className="scenario-card" key={scen.id}>
-                  
-                  {/* الترويسة الجديدة: تحتوي على زر الحذف وتقييم الخطورة فقط (بدون الـ ID) */}
                   <div className="scen-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <span className={`badge badge-${scen.severity.toLowerCase()}`}>{scen.severity}</span>
@@ -497,19 +631,16 @@ function App() {
                       <Trash2 size={18} color="#ef4444" />
                     </button>
                   </div>
-
-                  {/* المحتوى الأساسي للسيناريو الذي سنعيده للظهور */}
                   <h3>{scen.title}</h3>
                   <span className="scen-cat">{scen.category}</span>
                   <div className="scen-payload"><code>{scen.prompt_text}</code></div>
-                  
                 </div>
               ))}
             </section>
           </>
         )}
 
-        {/* ================= PAGE 3: MANUAL RED TEAMING WORKSPACE ================= */}
+        {/* ================= PAGE 3: MANUAL RED TEAMING ================= */}
         {currentPage === 'manual' && (
           <>
             <header className="main-header">
@@ -522,10 +653,7 @@ function App() {
                 <form onSubmit={handleRunManualTest} className="mini-form">
                   <div className="form-group">
                     <label>Target Model</label>
-                    <select 
-                      value={selectedModelId} 
-                      onChange={(e) => setSelectedModelId(parseInt(e.target.value))}
-                    >
+                    <select value={selectedModelId} onChange={(e) => setSelectedModelId(parseInt(e.target.value))}>
                       <option value={1}>Gemini 2.5 Pro (ID: 1)</option>
                       <option value={2}>Gemini 2.5 Flash (ID: 2)</option>
                       <option value={3}>Llama 3 (Groq) (ID: 3)</option>
@@ -539,7 +667,6 @@ function App() {
                       onChange={(e) => {
                         const val = e.target.value;
                         setSelectedScenarioId(val);
-                        // حركة ذكية: سحب نص السيناريو تلقائياً ووضعه في مربع النص
                         const chosenScen = scenarios.find(s => s.id.toString() === val);
                         if(chosenScen) setManualPrompt(chosenScen.prompt_text);
                         else setManualPrompt('');
@@ -584,7 +711,6 @@ function App() {
                       <button className="audit-btn broken" onClick={() => handleSaveEvaluation('Jailbreak Successful')}>Jailbreak</button>
                       <button className="audit-btn hallucinate" onClick={() => handleSaveEvaluation('Hallucination Triggered')}>Hallucination</button>
                     </div>
-                    {evaluationLabel && <p className="audit-success-msg">✓ Log entry saved locally as: <strong>{evaluationLabel}</strong></p>}
                   </div>
                 )}
               </div>
@@ -592,63 +718,62 @@ function App() {
           </>
         )}
 
-        {/* ================= PAGE 4: RESULT PAGE & ANALYTICS ================= */}
-        {/* ================= PAGE 4: RESULT PAGE & ANALYTICS ================= */}
-{currentPage === 'result' && (
-  <>
-    <header className="main-header">
-      <h1>Evaluation Results & Analytics</h1>
-      <p className="subtitle">Comprehensive risk scores and logs compiled from attack runs</p>
-    </header>
-    
-    <section className="metrics-grid">
-      <div className="metric-card">
-        <div className="metric-header"><span className="text-muted">Total Simulations</span><Terminal size={20} className="text-primary" /></div>
-        <div className="metric-value">{recentTests.length}</div> {/* قراءة العدد الفعلي من المصفوفة */}
-      </div>
-      <div className="metric-card">
-        <div className="metric-header"><span className="text-muted">Vulnerabilities Found</span><AlertTriangle size={20} className="text-danger" /></div>
-        <div className="metric-value text-danger">1</div> {/* قيمة مؤقتة حتى نربط جدول التقييمات */}
-      </div>
-      <div className="metric-card">
-        <div className="metric-header"><span className="text-muted">Active Scenarios</span><Layers size={20} className="text-success" /></div>
-        <div className="metric-value text-success">{scenarios.length}</div>
-      </div>
-    </section>
+        {/* ================= PAGE 4: RESULT PAGE ================= */}
+        {currentPage === 'result' && (
+          <>
+            <header className="main-header">
+              <h1>Evaluation Results & Analytics</h1>
+              <p className="subtitle">Comprehensive risk scores and logs compiled from attack runs</p>
+            </header>
+            
+            <section className="metrics-grid">
+              <div className="metric-card">
+                <div className="metric-header"><span className="text-muted">Total Simulations</span><Terminal size={20} className="text-primary" /></div>
+                <div className="metric-value">{recentTests.length}</div> 
+              </div>
+              <div className="metric-card">
+                <div className="metric-header"><span className="text-muted">Vulnerabilities Found</span><AlertTriangle size={20} className="text-danger" /></div>
+                <div className="metric-value text-danger">1</div> 
+              </div>
+              <div className="metric-card">
+                <div className="metric-header"><span className="text-muted">Active Scenarios</span><Layers size={20} className="text-success" /></div>
+                <div className="metric-value text-success">{scenarios.length}</div>
+              </div>
+            </section>
 
-    <section className="table-section">
-      <h2>Recent Audit Logs & Output Status</h2>
-      <div className="table-container">
-        <table className="custom-table">
-          <thead>
-            <tr>
-              <th>Test ID</th>
-              <th>Target Model ID</th>
-              <th>Attack Scenario ID</th>
-              <th>Run Mode</th>
-              <th>Outcome Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recentTests.map((test) => (
-              <tr key={test.id}>
-                <td className="font-mono">TR-{test.id}</td>
-                <td>Model #{test.model_id}</td>
-                <td>Scenario #{test.scenario_id}</td>
-                <td><span className="badge badge-medium">{test.run_mode}</span></td>
-                <td>
-                  <span className={`status-label status-${test.status.toLowerCase()}`}>
-                    {test.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </>
-)}
+            <section className="table-section">
+              <h2>Recent Audit Logs & Output Status</h2>
+              <div className="table-container">
+                <table className="custom-table">
+                  <thead>
+                    <tr>
+                      <th>Test ID</th>
+                      <th>Target Model ID</th>
+                      <th>Attack Scenario ID</th>
+                      <th>Run Mode</th>
+                      <th>Outcome Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentTests.map((test) => (
+                      <tr key={test.id}>
+                        <td className="font-mono">TR-{test.id}</td>
+                        <td>Model #{test.model_id}</td>
+                        <td>Scenario #{test.scenario_id}</td>
+                        <td><span className="badge badge-medium">{test.run_mode}</span></td>
+                        <td>
+                          <span className={`status-label status-${test.status.toLowerCase()}`}>
+                            {test.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
 
       </main>
     </div>

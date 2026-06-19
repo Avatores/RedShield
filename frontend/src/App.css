@@ -595,3 +595,158 @@
   font-size: 13px;
   margin-top: 8px;
 }
+
+/* ================= PUBLIC PAGES (LANDING, LOGIN, REGISTER) ================= */
+.public-container {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #0f111a;
+  color: white;
+  overflow-x: hidden;
+}
+
+.public-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 20px 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+  background: transparent;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-ghost { background: transparent; border: none; color: #a1a1aa; cursor: pointer; transition: 0.3s; }
+.btn-ghost:hover { color: white; }
+.btn-outline { background: transparent; border: 1px solid #3f3f46; color: white; padding: 8px 20px; border-radius: 6px; cursor: pointer; transition: 0.3s; }
+.btn-outline:hover { border-color: #ef4444; }
+
+.landing-content {
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  padding: 100px 20px 50px;
+  text-align: center;
+}
+
+.hero-section { max-width: 800px; margin-bottom: 80px; }
+
+.hero-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 50px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+
+.hero-title {
+  font-size: 4rem;
+  line-height: 1.1;
+  font-weight: 800;
+  margin-bottom: 25px;
+  letter-spacing: -1px;
+}
+
+.hero-title span { color: #ef4444; }
+
+.hero-subtitle {
+  font-size: 1.2rem;
+  color: #a1a1aa;
+  margin-bottom: 40px;
+  line-height: 1.6;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.btn-primary-large {
+  background: #ef4444; color: white; padding: 14px 30px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: 0.3s;
+}
+.btn-primary-large:hover { background: #dc2626; transform: translateY(-2px); }
+
+.btn-secondary-large {
+  background: rgba(255, 255, 255, 0.05); color: white; padding: 14px 30px; border: 1px solid #3f3f46; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: 0.3s;
+}
+.btn-secondary-large:hover { background: rgba(255, 255, 255, 0.1); }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  width: 100%;
+}
+
+.feature-card {
+  background: rgba(30, 30, 36, 0.6);
+  border: 1px solid #27272a;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: left;
+  backdrop-filter: blur(10px);
+}
+
+.feature-card h3 { margin: 15px 0 10px; font-size: 1.2rem; }
+.feature-card p { color: #a1a1aa; font-size: 0.95rem; line-height: 1.5; }
+
+.auth-card {
+  z-index: 5;
+  background: #18181b;
+  border: 1px solid #27272a;
+  padding: 40px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 20px;
+  color: #a1a1aa;
+  font-size: 0.9rem;
+}
+
+.auth-switch span {
+  color: #ef4444; cursor: pointer; font-weight: 600;
+}
+.auth-switch span:hover { text-decoration: underline; }
+
+.btn-primary {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #dc2626;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5); /* تأثير توهج سيبراني أنيق */
+  transform: translateY(-1px);
+}
