@@ -750,3 +750,59 @@
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.5); /* تأثير توهج سيبراني أنيق */
   transform: translateY(-1px);
 }
+
+
+/* دعم اللغة العربية والاتجاه من اليمين لليسار */
+[dir="rtl"] {
+  font-family: 'Tajawal', 'Cairo', sans-serif;
+}
+
+[dir="rtl"] .sidebar {
+  border-right: none;
+  border-left: 1px solid #27272a;
+}
+
+[dir="rtl"] .scen-card-header, 
+[dir="rtl"] .metric-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav-actions, 
+[dir="rtl"] .hero-buttons {
+  flex-direction: row-reverse;
+}
+
+/* ================= توحيد الهوية (اللون البنفسجي السيبراني) ================= */
+:root {
+  --primary-purple: #8b5cf6; 
+  --primary-purple-hover: #7c3aed;
+}
+
+/* تعديلات صفحة الهبوط لتصبح بنفسجية */
+.hero-badge {
+  background: rgba(139, 92, 246, 0.1) !important;
+  color: var(--primary-purple) !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+}
+
+.hero-title span {
+  color: var(--primary-purple) !important;
+}
+
+.btn-primary-large, .btn-primary {
+  background: var(--primary-purple) !important;
+}
+
+.btn-primary-large:hover, .btn-primary:hover {
+  background: var(--primary-purple-hover) !important;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.5) !important;
+}
+
+.text-primary, .icon-primary {
+  color: var(--primary-purple) !important;
+}
+
+/* تعديل ألوان الروابط في صفحة الدخول */
+.auth-switch span {
+  color: var(--primary-purple) !important;
+}

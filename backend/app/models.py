@@ -59,6 +59,7 @@ class TestRun(Base):
     status = Column(String(50))
     executed_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
     created_at = Column(DateTime, default=datetime.utcnow)
+    ai_response = Column(String, nullable=True)
 
 # 6. Responses model
 class Response(Base):

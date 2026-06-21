@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.models import User
 from app.core.security import verify_password, create_access_token
-from app.schemas import Token
 
 router = APIRouter(tags=["المصادقة (Authentication)"])
 
-@router.post("/login", response_model=Token)
+# أزلنا response_model=Token لكي يسمح FastAPI بإرسال role_id للواجهة بحرية
+@router.post("/login")
 def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     
     user = db.query(User).filter(User.email == user_credentials.username).first()
@@ -27,4 +27,9 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
 
     access_token = create_access_token(data={"user_id": user.id})
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    # 💡 التعديل هنا: قمنا بإضافة role_id في الرد
+    return {
+        "access_token": access_token, 
+        "token_type": "bearer",
+        "role_id": user.role_id 
+    }

@@ -75,9 +75,10 @@ class TestRunCreate(TestRunBase):
 
 class TestRunResponse(TestRunBase):
     id: int
-    status: str  
+    status: Optional[str] = None  
     executed_by: Optional[int]
     created_at: datetime
+    ai_response: Optional[str] = None # <== أضف هذا السطر
 
     class Config:
         from_attributes = True
@@ -128,3 +129,12 @@ class EvaluationResponse(EvaluationBase):
 
     class Config:
         from_attributes = True
+
+
+
+# ==========================================
+# 8.(AI Simulation Request Schema)
+# ==========================================
+class PromptRequest(BaseModel):
+    prompt: str
+    model_name: str
