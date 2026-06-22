@@ -1,4 +1,4 @@
-const API_BASE_URL = "رابط الباك إند الذي سنحصل عليه من Render بعد قليل";
+const API_BASE_URL = "https://redshield-cvf2.onrender.com";
 // مؤقتاً، قم باستبدال كل كلمة 'http://localhost:8000' في الكود بـ API_BASE_URL
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Terminal, CheckCircle2, AlertTriangle, Layers, PlusCircle, Play, LogIn, LogOut, Trash2, Eye } from 'lucide-react';
