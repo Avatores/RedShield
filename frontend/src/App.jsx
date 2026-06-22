@@ -1,3 +1,5 @@
+const API_BASE_URL = "رابط الباك إند الذي سنحصل عليه من Render بعد قليل";
+// مؤقتاً، قم باستبدال كل كلمة 'http://localhost:8000' في الكود بـ API_BASE_URL
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Terminal, CheckCircle2, AlertTriangle, Layers, PlusCircle, Play, LogIn, LogOut, Trash2, Eye } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
@@ -46,7 +48,7 @@ function App() {
   const fetchScenarios = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/scenarios/', { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+      const response = await fetch('${API_BASE_URL}/scenarios/', { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
       if (response.ok) setScenarios(await response.json());
     } catch (error) { console.error("Error fetching scenarios:", error); }
   };
@@ -54,7 +56,7 @@ function App() {
   const fetchTestRuns = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/test-runs/', { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+      const response = await fetch('${API_BASE_URL}/test-runs/', { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
       if (response.ok) setRecentTests(await response.json());
     } catch (error) { console.error("Error fetching test runs:", error); }
   };
@@ -120,7 +122,7 @@ function App() {
     const toastId = toast.loading('Authenticating...');
     try {
       const formData = new FormData(); formData.append('username', username); formData.append('password', password);
-      const response = await fetch('http://localhost:8000/login', { method: 'POST', body: formData });
+      const response = await fetch('${API_BASE_URL}/login', { method: 'POST', body: formData });
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.access_token); localStorage.setItem('role_id', data.role_id);
@@ -135,7 +137,7 @@ function App() {
     if (!regName || !regEmail || !regPassword) return;
     const toastId = toast.loading(lang === 'ar' ? 'جاري إنشاء الحساب...' : 'Creating account...');
     try {
-      const response = await fetch('http://localhost:8000/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ full_name: regName, email: regEmail, password: regPassword }) });
+      const response = await fetch('${API_BASE_URL}/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ full_name: regName, email: regEmail, password: regPassword }) });
       if (response.ok) { toast.success(lang === 'ar' ? 'تم الإنشاء بنجاح!' : 'Account Created!', { id: toastId }); setRegName(''); setRegEmail(''); setRegPassword(''); setPublicView('login'); 
       } else { const errData = await response.json(); toast.error(errData.detail || 'Error', { id: toastId }); }
     } catch (error) { toast.error(lang === 'ar' ? 'حدث خطأ.' : 'An error occurred.', { id: toastId }); }
@@ -150,7 +152,7 @@ function App() {
     e.preventDefault();
     const toastId = toast.loading(lang === 'ar' ? 'جاري الحفظ...' : 'Saving...');
     try {
-      const response = await fetch('http://localhost:8000/scenarios/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newScenario.name, description: "System", prompt_text: newScenario.prompt, category: newScenario.category, severity: newScenario.severity }) });
+      const response = await fetch('${API_BASE_URL}/scenarios/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newScenario.name, description: "System", prompt_text: newScenario.prompt, category: newScenario.category, severity: newScenario.severity }) });
       if (response.ok) { await fetchScenarios(); setNewScenario({ name: '', category: 'Jailbreaking', severity: 'High', prompt: '' }); setShowAddForm(false); toast.success(lang === 'ar' ? 'تمت الإضافة!' : 'Added successfully!', { id: toastId });
       } else { toast.error('Error', { id: toastId }); }
     } catch (error) { toast.error('Error', { id: toastId }); }
@@ -159,7 +161,7 @@ function App() {
   const confirmDeleteScenario = async (id) => {
     const toastId = toast.loading(lang === 'ar' ? 'جاري الحذف...' : 'Deleting...');
     try {
-      const response = await fetch(`http://localhost:8000/scenarios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const response = await fetch(`${API_BASE_URL}/scenarios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (response.ok) { fetchScenarios(); toast.success(lang === 'ar' ? 'تم الحذف!' : 'Deleted!', { id: toastId }); } 
       else { toast.error('Error', { id: toastId }); }
     } catch (error) { toast.error('Error', { id: toastId }); }
@@ -181,7 +183,7 @@ function App() {
   const confirmDeleteTestRun = async (id) => {
     const toastId = toast.loading(lang === 'ar' ? 'جاري الحذف...' : 'Deleting...');
     try {
-      const response = await fetch(`http://localhost:8000/test-runs/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const response = await fetch(`${API_BASE_URL}/test-runs/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (response.ok) { fetchTestRuns(); toast.success(lang === 'ar' ? 'تم الحذف!' : 'Deleted!', { id: toastId }); } 
       else { toast.error('Error', { id: toastId }); }
     } catch (error) { toast.error('Error', { id: toastId }); }
@@ -205,7 +207,7 @@ function App() {
     const toastId = toast.loading(lang === 'ar' ? 'جاري شن الهجوم الشامل... يرجى الانتظار ⚡' : 'Running automated batch attack... ⚡');
     setIsAutoScanning(true);
     try {
-      const response = await fetch(`http://localhost:8000/auto-scan/?model_id=${selectedModelId}`, { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const response = await fetch(`${API_BASE_URL}/auto-scan/?model_id=${selectedModelId}`, { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (response.ok) {
         const data = await response.json();
         toast.success(lang === 'ar' ? `اكتمل الفحص! تم اختبار ${data.total_scanned} سيناريو بنجاح.` : `Audit Complete! ${data.total_scanned} scenarios tested.`, { id: toastId, duration: 5000 });
@@ -221,12 +223,12 @@ function App() {
     const toastId = toast.loading('Initializing attack sequence...');
     try {
       const testRunData = { scenario_id: parseInt(selectedScenarioId) || null, model_id: selectedModelId, run_mode: selectedScenarioId ? "library_scenario" : "manual_custom" };
-      const response = await fetch('http://localhost:8000/test-runs/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify(testRunData) });
+      const response = await fetch('${API_BASE_URL}/test-runs/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify(testRunData) });
       if (response.ok) {
         const data = await response.json(); setCurrentTestRunId(data.id);
         toast.success('Attack initialized...', { id: toastId });
         try {
-          const aiResponse = await fetch('http://localhost:8000/simulate-attack/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: manualPrompt, model_name: selectedModelId === 1 ? "gemini-2.5-pro" : selectedModelId === 2 ? "gemini-2.5-flash" : "llama-3.1-8b-instant" }) });
+          const aiResponse = await fetch('${API_BASE_URL}/simulate-attack/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: manualPrompt, model_name: selectedModelId === 1 ? "gemini-2.5-pro" : selectedModelId === 2 ? "gemini-2.5-flash" : "llama-3.1-8b-instant" }) });
           if (aiResponse.ok) { setSimulatedResponse((await aiResponse.json()).reply); } else { setSimulatedResponse("Error"); toast.error('Model error'); }
         } catch (error) { setSimulatedResponse("Offline"); toast.error('Simulation offline'); } finally { setIsSimulating(false); }
       } else { setIsSimulating(false); toast.error('Error', { id: toastId }); }
@@ -239,7 +241,7 @@ function App() {
     const toastId = toast.loading('Saving audit log...');
     let riskScore = (label === 'Jailbreak Successful' || label === 'Unsafe') ? 9 : (label === 'Hallucination Triggered') ? 5 : 1;
     try {
-      const response = await fetch('http://localhost:8000/evaluations/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ test_run_id: currentTestRunId, label: label, risk_score: riskScore, notes: `Log: ${label}` }) });
+      const response = await fetch('${API_BASE_URL}/evaluations/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ test_run_id: currentTestRunId, label: label, risk_score: riskScore, notes: `Log: ${label}` }) });
       if (response.ok) { await fetchTestRuns(); toast.success(`Log Saved: ${label}`, { id: toastId }); } else { toast.error("Error", { id: toastId }); }
     } catch (error) { toast.error("Error", { id: toastId }); }
   };
@@ -385,6 +387,10 @@ function App() {
                       <button className="audit-btn safe" onClick={() => handleSaveEvaluation('Safe')}>{t('safe') || 'Safe'}</button>
                       <button className="audit-btn unsafe" onClick={() => handleSaveEvaluation('Unsafe')}>{t('unsafe') || 'Unsafe'}</button>
                       <button className="audit-btn broken" onClick={() => handleSaveEvaluation('Jailbreak Successful')}>{t('jailbreak') || 'Jailbreak'}</button>
+                      {/* 💡 أضفنا زر الهلوسة الجديد هنا */}
+                      <button className="audit-btn hallucination" onClick={() => handleSaveEvaluation('Hallucination Triggered')} style={{ borderColor: '#f59e0b', color: '#f59e0b' }}>
+                        {lang === 'ar' ? 'هلوسة' : 'Hallucination'}
+                      </button>
                     </div>
                   </div>
                 )}
