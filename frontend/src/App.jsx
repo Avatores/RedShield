@@ -4,14 +4,17 @@ import { Toaster, toast } from 'react-hot-toast';
 import { translations } from './translations';
 import './App.css';
 
+// 💡 تم وضع المتغير هنا بشكل صحيح بعد الـ imports وقبل دالة App لضمان نجاح الـ Build
 const API_BASE_URL = "https://redshield-cvf2.onrender.com";
 
 function App() {
+  // ================= 1. الحالات (States) الأساسية =================
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [publicView, setPublicView] = useState('landing'); 
   const [userRole, setUserRole] = useState(parseInt(localStorage.getItem('role_id')) || 2);
   const [currentPage, setCurrentPage] = useState('scenarios'); 
   
+  // إدارة اللغة والترجمة
   const [lang, setLang] = useState(localStorage.getItem('lang') || 'en');
   const t = (key) => translations[lang][key] || key;
 
@@ -22,12 +25,14 @@ function App() {
 
   const toggleLang = () => setLang(lang === 'en' ? 'ar' : 'en');
   
+  // بيانات التسجيل والدخول
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   
+  // بيانات الاختبار والسيناريوهات
   const [selectedModelId, setSelectedModelId] = useState(1);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -38,17 +43,20 @@ function App() {
   const [evaluationLabel, setEvaluationLabel] = useState('');
   const [currentTestRunId, setCurrentTestRunId] = useState(null);
   
-  // 💡 حالة نافذة عرض الرد
+  // حالة نافذة عرض الرد (Modal)
   const [viewResponseModal, setViewResponseModal] = useState({ isOpen: false, data: null });
   
   const [newScenario, setNewScenario] = useState({ name: '', category: 'Jailbreaking', severity: 'High', prompt: '' });
   const [scenarios, setScenarios] = useState([]);
   const [recentTests, setRecentTests] = useState([]);
 
+  // ================= 2. دوال جلب البيانات =================
   const fetchScenarios = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('${API_BASE_URL}/scenarios/', { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+      const response = await fetch(API_BASE_URL + '/scenarios/', {
+        method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
       if (response.ok) setScenarios(await response.json());
     } catch (error) { console.error("Error fetching scenarios:", error); }
   };
@@ -56,15 +64,21 @@ function App() {
   const fetchTestRuns = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('${API_BASE_URL}/test-runs/', { method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+      const response = await fetch(API_BASE_URL + '/test-runs/', {
+        method: 'GET', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+      });
       if (response.ok) setRecentTests(await response.json());
     } catch (error) { console.error("Error fetching test runs:", error); }
   };
 
-  useEffect(() => { if (isLoggedIn) { fetchScenarios(); fetchTestRuns(); } }, [isLoggedIn]);
+  useEffect(() => {
+    if (isLoggedIn) { fetchScenarios(); fetchTestRuns(); }
+  }, [isLoggedIn]);
 
   const getModelName = (id) => {
-    if (id === 1) return "Gemini 2.5 Pro"; if (id === 2) return "Gemini 2.5 Flash"; if (id === 3) return "Llama 3 (Groq)";
+    if (id === 1) return "Gemini 2.5 Pro";
+    if (id === 2) return "Gemini 2.5 Flash";
+    if (id === 3) return "Llama 3 (Groq)";
     return `Model #${id}`;
   };
 
@@ -74,6 +88,7 @@ function App() {
     return scen ? scen.title : `Scenario #${id} (Deleted)`;
   };
 
+  // ================= 3. تأثير الخلفية العصبية =================
   useEffect(() => {
     if (isLoggedIn) return; 
     const canvas = document.getElementById('login-canvas');
@@ -93,16 +108,25 @@ function App() {
         if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
         if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
       }
-      draw() { ctx.fillStyle = 'rgba(139, 92, 246, 0.3)'; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+      draw() {
+        ctx.fillStyle = 'rgba(139, 92, 246, 0.3)'; 
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+      }
     }
     for (let i = 0; i < 85; i++) particlesArray.push(new Particle());
 
     function connect() {
       for (let a = 0; a < particlesArray.length; a++) {
         for (let b = a; b < particlesArray.length; b++) {
-          let dx = particlesArray[a].x - particlesArray[b].x; let dy = particlesArray[a].y - particlesArray[b].y;
+          let dx = particlesArray[a].x - particlesArray[b].x;
+          let dy = particlesArray[a].y - particlesArray[b].y;
           let distance = Math.sqrt(dx * dx + dy * dy);
-          if (distance < 120) { ctx.strokeStyle = `rgba(139, 92, 246, ${(1 - (distance / 120)) * 0.09})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y); ctx.stroke(); }
+          if (distance < 120) {
+            ctx.strokeStyle = `rgba(139, 92, 246, ${(1 - (distance / 120)) * 0.09})`; 
+            ctx.lineWidth = 1; ctx.beginPath();
+            ctx.moveTo(particlesArray[a].x, particlesArray[a].y); ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+            ctx.stroke();
+          }
         }
       }
     }
@@ -110,19 +134,23 @@ function App() {
     let animationFrameId;
     function animate() {
       if (!document.getElementById('login-canvas')) return; 
-      ctx.clearRect(0, 0, canvas.width, canvas.height); particlesArray.forEach(p => { p.update(); p.draw(); }); connect(); animationFrameId = requestAnimationFrame(animate);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesArray.forEach(p => { p.update(); p.draw(); });
+      connect();
+      animationFrameId = requestAnimationFrame(animate);
     }
     animate();
     return () => cancelAnimationFrame(animationFrameId);
   }, [isLoggedIn, publicView]);
 
+  // ================= 4. دوال المصادقة =================
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
     const toastId = toast.loading('Authenticating...');
     try {
       const formData = new FormData(); formData.append('username', username); formData.append('password', password);
-      const response = await fetch('${API_BASE_URL}/login', { method: 'POST', body: formData });
+      const response = await fetch(API_BASE_URL + '/login', { method: 'POST', body: formData });
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('token', data.access_token); localStorage.setItem('role_id', data.role_id);
@@ -137,23 +165,38 @@ function App() {
     if (!regName || !regEmail || !regPassword) return;
     const toastId = toast.loading(lang === 'ar' ? 'جاري إنشاء الحساب...' : 'Creating account...');
     try {
-      const response = await fetch('${API_BASE_URL}/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ full_name: regName, email: regEmail, password: regPassword }) });
-      if (response.ok) { toast.success(lang === 'ar' ? 'تم الإنشاء بنجاح!' : 'Account Created!', { id: toastId }); setRegName(''); setRegEmail(''); setRegPassword(''); setPublicView('login'); 
-      } else { const errData = await response.json(); toast.error(errData.detail || 'Error', { id: toastId }); }
+      const response = await fetch(API_BASE_URL + '/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: regName, email: regEmail, password: regPassword })
+      });
+      if (response.ok) {
+        toast.success(lang === 'ar' ? 'تم الإنشاء بنجاح!' : 'Account Created!', { id: toastId });
+        setRegName(''); setRegEmail(''); setRegPassword(''); setPublicView('login'); 
+      } else {
+        const errData = await response.json(); toast.error(errData.detail || 'Error', { id: toastId });
+      }
     } catch (error) { toast.error(lang === 'ar' ? 'حدث خطأ.' : 'An error occurred.', { id: toastId }); }
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); localStorage.removeItem('role_id'); setIsLoggedIn(false); setUsername(''); setPassword('');
+    localStorage.removeItem('token'); localStorage.removeItem('role_id');
+    setIsLoggedIn(false); setUsername(''); setPassword('');
     toast.success(lang === 'ar' ? 'تم تسجيل الخروج' : 'Logged out');
   };
 
+  // ================= 5. دوال العمليات =================
   const handleAddScenario = async (e) => {
     e.preventDefault();
     const toastId = toast.loading(lang === 'ar' ? 'جاري الحفظ...' : 'Saving...');
     try {
-      const response = await fetch('${API_BASE_URL}/scenarios/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: newScenario.name, description: "System", prompt_text: newScenario.prompt, category: newScenario.category, severity: newScenario.severity }) });
-      if (response.ok) { await fetchScenarios(); setNewScenario({ name: '', category: 'Jailbreaking', severity: 'High', prompt: '' }); setShowAddForm(false); toast.success(lang === 'ar' ? 'تمت الإضافة!' : 'Added successfully!', { id: toastId });
+      const response = await fetch(API_BASE_URL + '/scenarios/', {
+        method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newScenario.name, description: "System", prompt_text: newScenario.prompt, category: newScenario.category, severity: newScenario.severity })
+      });
+      if (response.ok) {
+        await fetchScenarios();
+        setNewScenario({ name: '', category: 'Jailbreaking', severity: 'High', prompt: '' });
+        setShowAddForm(false); toast.success(lang === 'ar' ? 'تمت الإضافة!' : 'Added successfully!', { id: toastId });
       } else { toast.error('Error', { id: toastId }); }
     } catch (error) { toast.error('Error', { id: toastId }); }
   };
@@ -161,7 +204,7 @@ function App() {
   const confirmDeleteScenario = async (id) => {
     const toastId = toast.loading(lang === 'ar' ? 'جاري الحذف...' : 'Deleting...');
     try {
-      const response = await fetch(`${API_BASE_URL}/scenarios/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const response = await fetch(API_BASE_URL + '/scenarios/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (response.ok) { fetchScenarios(); toast.success(lang === 'ar' ? 'تم الحذف!' : 'Deleted!', { id: toastId }); } 
       else { toast.error('Error', { id: toastId }); }
     } catch (error) { toast.error('Error', { id: toastId }); }
@@ -170,7 +213,9 @@ function App() {
   const handleDeleteScenario = (id) => {
     toast((tId) => (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', minWidth: '300px', textAlign: lang === 'ar' ? 'right' : 'left', direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}><AlertTriangle size={22} /> <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('confirmTitle') || 'Confirm'}</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}>
+          <AlertTriangle size={22} /> <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('confirmTitle') || 'Confirm'}</span>
+        </div>
         <span style={{ color: '#d1d5db', fontSize: '14px', lineHeight: '1.5' }}>{t('confirmDeleteScen') || 'Delete scenario?'}</span>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '5px' }}>
           <button onClick={() => toast.dismiss(tId.id)} style={{ padding: '8px 16px', background: 'transparent', color: '#9ca3af', border: '1px solid #4b5563', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>{t('cancel') || 'Cancel'}</button>
@@ -183,7 +228,7 @@ function App() {
   const confirmDeleteTestRun = async (id) => {
     const toastId = toast.loading(lang === 'ar' ? 'جاري الحذف...' : 'Deleting...');
     try {
-      const response = await fetch(`${API_BASE_URL}/test-runs/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const response = await fetch(API_BASE_URL + '/test-runs/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
       if (response.ok) { fetchTestRuns(); toast.success(lang === 'ar' ? 'تم الحذف!' : 'Deleted!', { id: toastId }); } 
       else { toast.error('Error', { id: toastId }); }
     } catch (error) { toast.error('Error', { id: toastId }); }
@@ -192,7 +237,9 @@ function App() {
   const handleDeleteTestRun = (id) => {
     toast((tId) => (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', minWidth: '300px', textAlign: lang === 'ar' ? 'right' : 'left', direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}><AlertTriangle size={22} /> <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('confirmTitle') || 'Confirm'}</span></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}>
+          <AlertTriangle size={22} /> <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('confirmTitle') || 'Confirm'}</span>
+        </div>
         <span style={{ color: '#d1d5db', fontSize: '14px', lineHeight: '1.5' }}>{t('confirmDeleteLog') || 'Delete log?'}</span>
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '5px' }}>
           <button onClick={() => toast.dismiss(tId.id)} style={{ padding: '8px 16px', background: 'transparent', color: '#9ca3af', border: '1px solid #4b5563', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>{t('cancel') || 'Cancel'}</button>
@@ -207,11 +254,15 @@ function App() {
     const toastId = toast.loading(lang === 'ar' ? 'جاري شن الهجوم الشامل... يرجى الانتظار ⚡' : 'Running automated batch attack... ⚡');
     setIsAutoScanning(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/auto-scan/?model_id=${selectedModelId}`, { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+      const response = await fetch(API_BASE_URL + '/auto-scan/?model_id=' + selectedModelId, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
       if (response.ok) {
         const data = await response.json();
         toast.success(lang === 'ar' ? `اكتمل الفحص! تم اختبار ${data.total_scanned} سيناريو بنجاح.` : `Audit Complete! ${data.total_scanned} scenarios tested.`, { id: toastId, duration: 5000 });
-        await fetchTestRuns(); setCurrentPage('result'); 
+        await fetchTestRuns(); 
+        setCurrentPage('result'); 
       } else { toast.error(lang === 'ar' ? 'فشل الفحص الآلي.' : 'Auto-audit failed.', { id: toastId }); }
     } catch (error) { toast.error(lang === 'ar' ? 'خطأ في الاتصال بالخادم.' : 'Server error.', { id: toastId }); } finally { setIsAutoScanning(false); }
   };
@@ -223,14 +274,16 @@ function App() {
     const toastId = toast.loading('Initializing attack sequence...');
     try {
       const testRunData = { scenario_id: parseInt(selectedScenarioId) || null, model_id: selectedModelId, run_mode: selectedScenarioId ? "library_scenario" : "manual_custom" };
-      const response = await fetch('${API_BASE_URL}/test-runs/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify(testRunData) });
+      const response = await fetch(API_BASE_URL + '/test-runs/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify(testRunData) });
       if (response.ok) {
         const data = await response.json(); setCurrentTestRunId(data.id);
         toast.success('Attack initialized...', { id: toastId });
         try {
-          const aiResponse = await fetch('${API_BASE_URL}/simulate-attack/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: manualPrompt, model_name: selectedModelId === 1 ? "gemini-2.5-pro" : selectedModelId === 2 ? "gemini-2.5-flash" : "llama-3.1-8b-instant" }) });
-          if (aiResponse.ok) { setSimulatedResponse((await aiResponse.json()).reply); } else { setSimulatedResponse("Error"); toast.error('Model error'); }
-        } catch (error) { setSimulatedResponse("Offline"); toast.error('Simulation offline'); } finally { setIsSimulating(false); }
+          const aiResponse = await fetch(API_BASE_URL + '/simulate-attack/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: manualPrompt, model_name: selectedModelId === 1 ? "gemini-2.5-pro" : selectedModelId === 2 ? "gemini-2.5-flash" : "llama-3.1-8b-instant" }) });
+          if (aiResponse.ok) { setSimulatedResponse((await aiResponse.json()).reply); } 
+          else { setSimulatedResponse("Error"); toast.error('Model error'); }
+        } catch (error) { setSimulatedResponse("Offline"); toast.error('Simulation offline'); }
+        finally { setIsSimulating(false); }
       } else { setIsSimulating(false); toast.error('Error', { id: toastId }); }
     } catch (error) { setIsSimulating(false); toast.error('Error', { id: toastId }); }
   };
@@ -241,25 +294,32 @@ function App() {
     const toastId = toast.loading('Saving audit log...');
     let riskScore = (label === 'Jailbreak Successful' || label === 'Unsafe') ? 9 : (label === 'Hallucination Triggered') ? 5 : 1;
     try {
-      const response = await fetch('${API_BASE_URL}/evaluations/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ test_run_id: currentTestRunId, label: label, risk_score: riskScore, notes: `Log: ${label}` }) });
-      if (response.ok) { await fetchTestRuns(); toast.success(`Log Saved: ${label}`, { id: toastId }); } else { toast.error("Error", { id: toastId }); }
+      const response = await fetch(API_BASE_URL + '/evaluations/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ test_run_id: currentTestRunId, label: label, risk_score: riskScore, notes: `Log: ${label}` }) });
+      if (response.ok) { await fetchTestRuns(); toast.success(`Log Saved: ${label}`, { id: toastId }); } 
+      else { toast.error("Error", { id: toastId }); }
     } catch (error) { toast.error("Error", { id: toastId }); }
   };
 
+  // ================= 6. الصفحات العامة =================
   if (!isLoggedIn) {
     return (
       <div className="public-container">
         <Toaster position="bottom-right" reverseOrder={false} />
         <canvas id="login-canvas"></canvas> 
         <nav className="public-nav">
-          <div className="logo-area" onClick={() => setPublicView('landing')} style={{cursor: 'pointer'}}><ShieldAlert className="icon-primary" size={28} /><h2>RedShield</h2></div>
+          <div className="logo-area" onClick={() => setPublicView('landing')} style={{cursor: 'pointer'}}>
+            <ShieldAlert className="icon-primary" size={28} /><h2>RedShield</h2>
+          </div>
           <div className="nav-actions">
-            <button className="btn-ghost" onClick={toggleLang} style={{ fontWeight: 'bold', border: '1px solid #3f3f46', padding: '5px 15px', borderRadius: '20px' }}>{lang === 'en' ? 'عربي' : 'English'}</button>
+            <button className="btn-ghost" onClick={toggleLang} style={{ fontWeight: 'bold', border: '1px solid #3f3f46', padding: '5px 15px', borderRadius: '20px' }}>
+              {lang === 'en' ? 'عربي' : 'English'}
+            </button>
             {publicView !== 'landing' && <button className="btn-ghost" onClick={() => setPublicView('landing')}>{t('home') || 'Home'}</button>}
             <button className="btn-outline" onClick={() => setPublicView('login')}>{t('login') || 'Log In'}</button>
             <button className="btn-primary" onClick={() => setPublicView('register')}>{t('signup') || 'Sign Up'}</button>
           </div>
         </nav>
+
         {publicView === 'landing' && (
           <div className="landing-content">
             <div className="hero-section">
@@ -278,6 +338,7 @@ function App() {
             </div>
           </div>
         )}
+
         {publicView === 'login' && (
           <div className="auth-card">
             <div className="login-header"><ShieldAlert className="icon-primary" size={40} /><h2>{t('welcomeBack')}</h2><p>{t('authSubtitleLogin')}</p></div>
@@ -289,11 +350,12 @@ function App() {
             <p className="auth-switch">{t('noAccount')} <span onClick={() => setPublicView('register')}>{t('signup')}</span></p>
           </div>
         )}
+
         {publicView === 'register' && (
           <div className="auth-card">
             <div className="login-header"><CheckCircle2 className="icon-success" size={40} /><h2>{t('createAccount')}</h2><p>{t('authSubtitleReg')}</p></div>
             <form className="mini-form" onSubmit={handleRegister}>
-              <div className="form-group"><label>{t('fullName')}</label><input type="text" value={regName} onChange={(e) => setRegName(e.target.value)} required /></div>
+              <div className="form-group"><label>{t('fullName')} </label><input type="text" value={regName} onChange={(e) => setRegName(e.target.value)} required /></div>
               <div className="form-group"><label>{t('email')}</label><input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)} required /></div>
               <div className="form-group"><label>{t('password')}</label><input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)} required /></div>
               <button type="submit" className="btn-login" style={{background: '#10b981'}}>{t('regBtn')}</button>
@@ -305,6 +367,7 @@ function App() {
     );
   }
 
+  // ================= 7. لوحة التحكم =================
   return (
     <div className="dashboard-layout">
       <Toaster position="bottom-right" reverseOrder={false} />
@@ -324,15 +387,34 @@ function App() {
             <header className="main-header library-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
               <div><h1>{t('libTitle') || 'Library'}</h1><p className="subtitle">{t('libSub')}</p></div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <select value={selectedModelId} onChange={(e) => setSelectedModelId(parseInt(e.target.value))} style={{ background: '#1f2937', color: 'white', border: '1px solid #374151', borderRadius: '6px', padding: '8px 12px', outline: 'none' }}>
-                  <option value={1}>Gemini 2.5 Pro</option><option value={2}>Gemini 2.5 Flash</option><option value={3}>Llama 3 (Groq)</option>
+                
+                <select 
+                  value={selectedModelId} 
+                  onChange={(e) => setSelectedModelId(parseInt(e.target.value))}
+                  style={{ background: '#1f2937', color: 'white', border: '1px solid #374151', borderRadius: '6px', padding: '8px 12px', outline: 'none' }}
+                >
+                  <option value={1}>Gemini 2.5 Pro</option>
+                  <option value={2}>Gemini 2.5 Flash</option>
+                  <option value={3}>Llama 3 (Groq)</option>
                 </select>
-                <button onClick={handleAutoScan} disabled={isAutoScanning || scenarios.length === 0} style={{ background: isAutoScanning ? '#6b7280' : '#8b5cf6', color: 'white', border: 'none', borderRadius: '6px', padding: '8px 16px', cursor: (isAutoScanning || scenarios.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
+
+                <button 
+                  onClick={handleAutoScan} 
+                  disabled={isAutoScanning || scenarios.length === 0}
+                  style={{ 
+                    background: isAutoScanning ? '#6b7280' : '#8b5cf6', 
+                    color: 'white', border: 'none', borderRadius: '6px', padding: '8px 16px', 
+                    cursor: (isAutoScanning || scenarios.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold'
+                  }}
+                  title="Run all scenarios against the selected model automatically"
+                >
                   <Play size={18} /> {isAutoScanning ? (lang === 'ar' ? 'جاري الفحص...' : 'Scanning...') : (lang === 'ar' ? 'فحص آلي شامل ⚡' : 'Auto-Audit All ⚡')}
                 </button>
+
                 {userRole === 1 && <button className="btn-primary-action" onClick={() => setShowAddForm(!showAddForm)} style={{ height: '37px' }}><PlusCircle size={18} /> {t('newScenario') || 'New'}</button>}
               </div>
             </header>
+
             {showAddForm && userRole === 1 && (
               <div className="form-card-panel">
                 <h3>{t('newScenario') || 'New Scenario'}</h3>
@@ -387,8 +469,8 @@ function App() {
                       <button className="audit-btn safe" onClick={() => handleSaveEvaluation('Safe')}>{t('safe') || 'Safe'}</button>
                       <button className="audit-btn unsafe" onClick={() => handleSaveEvaluation('Unsafe')}>{t('unsafe') || 'Unsafe'}</button>
                       <button className="audit-btn broken" onClick={() => handleSaveEvaluation('Jailbreak Successful')}>{t('jailbreak') || 'Jailbreak'}</button>
-                      {/* 💡 أضفنا زر الهلوسة الجديد هنا */}
-                      <button className="audit-btn hallucination" onClick={() => handleSaveEvaluation('Hallucination Triggered')} style={{ borderColor: '#f59e0b', color: '#f59e0b' }}>
+                      
+                      <button className="audit-btn hallucination" onClick={() => handleSaveEvaluation('Hallucination Triggered')} style={{ borderColor: '#f59e0b', color: '#f59e0b', background: 'transparent', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer' }}>
                         {lang === 'ar' ? 'هلوسة' : 'Hallucination'}
                       </button>
                     </div>
@@ -423,8 +505,7 @@ function App() {
                         <td style={{ fontWeight: '500' }}>{getModelName(test.model_id)}</td>
                         <td style={{ color: '#a1a1aa' }}>{getScenarioName(test.scenario_id)}</td>
                         <td><span className="badge badge-medium">{test.run_mode === 'manual_custom' ? 'MANUAL' : test.run_mode === 'automated_batch' ? 'AUTO BATCH' : 'LIBRARY'}</span></td>
-                        <td><span className={`status-label status-${test.status ? test.status.toLowerCase().replace(' ', '-') : 'pending'}`}>{test.status || 'Pending'}</span></td>
-                        {/* 💡 أزرار التحكم مدمجة مع زر العين */}
+                        <td><span className={`status-label status-${test.status ? test.status.toLowerCase().replace(/ /g, '-') : 'pending'}`}>{test.status || 'Pending'}</span></td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                             <button onClick={() => setViewResponseModal({ isOpen: true, data: test })} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '5px' }} title={lang === 'ar' ? "عرض الرد" : "View Response"}>
@@ -444,7 +525,6 @@ function App() {
               </div>
             </section>
 
-            {/* 💡 نافذة عرض الرد (Modal) المخصصة */}
             {viewResponseModal.isOpen && (
               <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '20px' }}>
                 <div style={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: '8px', padding: '20px', width: '100%', maxWidth: '650px', maxHeight: '80vh', overflowY: 'auto', textAlign: lang === 'ar' ? 'right' : 'left', direction: lang === 'ar' ? 'rtl' : 'ltr', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
