@@ -1,10 +1,10 @@
-const API_BASE_URL = "https://redshield-cvf2.onrender.com";
-// مؤقتاً، قم باستبدال كل كلمة 'http://localhost:8000' في الكود بـ API_BASE_URL
 import React, { useState, useEffect } from 'react';
 import { ShieldAlert, Terminal, CheckCircle2, AlertTriangle, Layers, PlusCircle, Play, LogIn, LogOut, Trash2, Eye } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 import { translations } from './translations';
 import './App.css';
+
+const API_BASE_URL = "https://redshield-cvf2.onrender.com";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
