@@ -78,6 +78,6 @@ npm run dev
 
 ### 2- Navigate to the Sign Up page.
 
-### 3- Create a new operator account (e.g., yourname@redshield.com).
+### 3- Create a new operator account (e.g., email@redshield.com).
 
 ### 4- Log in with your new credentials to access the RedShield Dashboard and start running security audits.
