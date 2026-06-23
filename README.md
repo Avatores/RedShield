@@ -56,8 +56,9 @@ GROQ_API_KEY=your_groq_api_key_here
 ### Run the Backend Server:
 ```bash
 uvicorn main:app --reload
-The API will start running on http://localhost:8000.
 ```
+### The API will start running on http://localhost:8000.
+
 
 ### 3. Frontend Setup
 ## Open a new terminal window and navigate to the frontend directory:
