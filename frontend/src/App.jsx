@@ -215,13 +215,41 @@ function App() {
     ), { id: 'delete-modal', duration: Infinity, position: 'top-center', style: { background: '#18181b', border: '1px solid #3f3f46', color: '#fff', marginTop: '35vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '20px' } });
   };
 
-  const confirmDeleteTestRun = async (id) => {
-    const toastId = toast.loading(lang === 'ar' ? 'جاري الحذف...' : 'Deleting...');
+  const confirmDeleteAllTestRuns = async () => {
+    const toastId = toast.loading(lang === 'ar' ? 'جاري مسح جميع السجلات...' : 'Deleting all logs...');
     try {
-      const response = await fetch(API_BASE_URL + '/test-runs/' + id, { method: 'DELETE', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-      if (response.ok) { fetchTestRuns(); toast.success(lang === 'ar' ? 'تم الحذف!' : 'Deleted!', { id: toastId }); } 
-      else { toast.error('Error', { id: toastId }); }
-    } catch (error) { toast.error('Error', { id: toastId }); }
+      const response = await fetch(API_BASE_URL + '/test-runs/all', { 
+        method: 'DELETE', 
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+      });
+      
+      if (response.ok) { 
+        fetchTestRuns(); // تحديث الجدول ليصبح فارغاً
+        toast.success(lang === 'ar' ? 'تم تنظيف قاعدة البيانات بنجاح!' : 'All logs cleared!', { id: toastId }); 
+      } else { 
+        toast.error('Error deleting logs', { id: toastId }); 
+      }
+    } catch (error) { 
+      toast.error('Server error', { id: toastId }); 
+    }
+  };
+
+  const handleDeleteAllTestRuns = () => {
+    if (recentTests.length === 0) return; 
+    toast((tId) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', minWidth: '300px', textAlign: lang === 'ar' ? 'right' : 'left', direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}>
+          <AlertTriangle size={22} /> <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('confirmTitle') || 'Warning: Clear All'}</span>
+        </div>
+        <span style={{ color: '#d1d5db', fontSize: '14px', lineHeight: '1.5' }}>
+          {lang === 'ar' ? 'هل أنت متأكد من حذف جميع السجلات دفعة واحدة؟ لا يمكن التراجع عن هذا الإجراء.' : 'Are you sure you want to delete ALL test logs? This cannot be undone.'}
+        </span>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '5px' }}>
+          <button onClick={() => toast.dismiss(tId.id)} style={{ padding: '8px 16px', background: 'transparent', color: '#9ca3af', border: '1px solid #4b5563', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>{t('cancel') || 'Cancel'}</button>
+          <button onClick={() => { toast.dismiss(tId.id); confirmDeleteAllTestRuns(); }} style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>{lang === 'ar' ? 'مسح الكل' : 'Clear All'}</button>
+        </div>
+      </div>
+    ), { id: 'delete-all-modal', duration: Infinity, position: 'top-center', style: { background: '#18181b', border: '1px solid #3f3f46', color: '#fff', marginTop: '35vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '20px' } });
   };
 
   const handleDeleteTestRun = (id) => {
@@ -261,21 +289,52 @@ function App() {
     e.preventDefault();
     if (!manualPrompt.trim()) return;
     setIsSimulating(true); setSimulatedResponse(''); setEvaluationLabel('');
-    const toastId = toast.loading('Initializing attack sequence...');
+    const toastId = toast.loading(lang === 'ar' ? 'جاري شن الهجوم...' : 'Initializing attack sequence...');
+
     try {
-      const testRunData = { scenario_id: parseInt(selectedScenarioId) || null, model_id: selectedModelId, run_mode: selectedScenarioId ? "library_scenario" : "manual_custom" };
-      const response = await fetch(API_BASE_URL + '/test-runs/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify(testRunData) });
-      if (response.ok) {
-        const data = await response.json(); setCurrentTestRunId(data.id);
-        toast.success('Attack initialized...', { id: toastId });
-        try {
-          const aiResponse = await fetch(API_BASE_URL + '/simulate-attack/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: manualPrompt, model_name: selectedModelId === 1 ? "gemini-2.5-pro" : selectedModelId === 2 ? "gemini-2.5-flash" : "llama-3.1-8b-instant" }) });
-          if (aiResponse.ok) { setSimulatedResponse((await aiResponse.json()).reply); } 
-          else { setSimulatedResponse("Error"); toast.error('Model error'); }
-        } catch (error) { setSimulatedResponse("Offline"); toast.error('Simulation offline'); }
-        finally { setIsSimulating(false); }
-      } else { setIsSimulating(false); toast.error('Error', { id: toastId }); }
-    } catch (error) { setIsSimulating(false); toast.error('Error', { id: toastId }); }
+      const aiResponseReq = await fetch(API_BASE_URL + '/simulate-attack/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: manualPrompt,
+          model_name: selectedModelId === 1 ? "gemini-2.5-pro" : selectedModelId === 2 ? "gemini-2.5-flash" : "llama-3.1-8b-instant"
+        })
+      });
+
+      if (aiResponseReq.ok) {
+        const replyData = await aiResponseReq.json();
+        const replyText = replyData.reply;
+        setSimulatedResponse(replyText); 
+
+        const testRunData = {
+          scenario_id: parseInt(selectedScenarioId) || null,
+          model_id: selectedModelId,
+          run_mode: selectedScenarioId ? "library_scenario" : "manual_custom",
+          ai_response: replyText 
+        };
+
+        const response = await fetch(API_BASE_URL + '/test-runs/', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(testRunData)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentTestRunId(data.id);
+          toast.success(lang === 'ar' ? 'تمت المحاكاة. يرجى التقييم!' : 'Attack simulated. Please evaluate.', { id: toastId });
+        } else {
+          toast.error('Error saving test run', { id: toastId });
+        }
+
+      } else {
+        setSimulatedResponse("Error"); toast.error('Model error', { id: toastId });
+      }
+    } catch (error) {
+      setSimulatedResponse("Offline"); toast.error('Simulation offline', { id: toastId });
+    } finally {
+      setIsSimulating(false);
+    }
   };
 
   const handleSaveEvaluation = async (label) => {
@@ -477,7 +536,24 @@ function App() {
               <div className="metric-card"><div className="metric-header"><span className="text-muted">{t('activeScens') || 'Active'}</span><Layers size={20} className="text-success" /></div><div className="metric-value text-success">{scenarios.length}</div></div>
             </section>
             <section className="table-section">
-              <h2>{t('recentLogs') || 'Logs'}</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <h2>{t('recentLogs') || 'Logs'}</h2>
+                {userRole === 1 && (
+                <button 
+                  onClick={handleDeleteAllTestRuns}
+                  disabled={recentTests.length === 0}
+                  style={{
+                    background: recentTests.length === 0 ? '#3f3f46' : '#ef4444',
+                    color: recentTests.length === 0 ? '#9ca3af' : 'white',
+                    border: 'none', borderRadius: '6px', padding: '8px 16px', 
+                    cursor: recentTests.length === 0 ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px'
+                  }}
+                >
+                  <Trash2 size={16} /> {lang === 'ar' ? 'مسح جميع السجلات' : 'Clear All Logs'}
+                </button>
+              )}
+              </div>
               <div className="table-container">
                 <table className="custom-table">
                   <thead>

@@ -57,12 +57,12 @@ class AttackScenarioResponse(AttackScenarioBase):
 
 # 4.(Test Run Schemas)
 class TestRunBase(BaseModel):
-    scenario_id: int
+    scenario_id: Optional[int] = None  
     model_id: int
     run_mode: str  
 
 class TestRunCreate(TestRunBase):
-    pass
+    ai_response: Optional[str] = None  
 
 class TestRunResponse(TestRunBase):
     id: int

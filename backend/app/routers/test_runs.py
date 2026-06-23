@@ -17,9 +17,10 @@ def create_test_run(
     db: Session = Depends(get_db),
     current_user: db_models.User = Depends(get_current_user)
 ):
-    scenario = db.query(db_models.AttackScenario).filter(db_models.AttackScenario.id == test_run.scenario_id).first()
-    if not scenario:
-        raise HTTPException(status_code=404, detail="Attack Scenario not found")
+    if test_run.scenario_id is not None:
+        scenario = db.query(db_models.AttackScenario).filter(db_models.AttackScenario.id == test_run.scenario_id).first()
+        if not scenario:
+            raise HTTPException(status_code=404, detail="Attack Scenario not found")
 
     model = db.query(db_models.AIModel).filter(db_models.AIModel.id == test_run.model_id).first()
     if not model:
@@ -43,3 +44,9 @@ def get_all_test_runs(
 ):
     runs = db.query(db_models.TestRun).all()
     return runs
+
+@router.delete("/all")
+def delete_all_test_runs(db: Session = Depends(get_db)):
+    db.query(db_models.TestRun).delete(synchronize_session=False)
+    db.commit()
+    return {"message": "All test runs deleted successfully"}
