@@ -47,8 +47,8 @@ venv\Scripts\activate  # For Windows
 # source venv/bin/activate  # For macOS/Linux
 pip install -r requirements.txt
 ```
-## Environment Configuration:
-# Create a (.env) file in the root of the backend directory and add your API credentials:
+# Environment Configuration:
+## Create a (.env) file in the root of the backend directory and add your API credentials:
 
 GEMINI_API_KEY=your_google_gemini_api_key_here
 GROQ_API_KEY=your_groq_api_key_here
