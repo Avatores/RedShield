@@ -73,10 +73,10 @@ npm run dev
 
 ### For security purposes, RedShield does not include hardcoded default credentials. To access the workspace:
 
-# 1- Open the application in your browser (http://localhost:5173)
+## 1- Open the application in your browser (http://localhost:5173)
 
-# 2- Navigate to the Sign Up page.
+## 2- Navigate to the Sign Up page.
 
-# 3- Create a new operator account (e.g., nasser@redshield.com).
+## 3- Create a new operator account (e.g., yourname@redshield.com).
 
-# 4- Log in with your new credentials to access the RedShield Dashboard and start running security audits.
+## 4- Log in with your new credentials to access the RedShield Dashboard and start running security audits.
