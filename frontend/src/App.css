@@ -461,20 +461,19 @@
   background-color: rgba(239, 68, 68, 0.05);
 }
 
-/* تنسيق شاشة الخلفية المتحركة لصفحة الدخول */
 #login-canvas {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 1; /* خلف العناصر الأساسية */
-  pointer-events: none; /* لمنع حجب نقرات الماوس */
+  z-index: 1; 
+  pointer-events: none; 
 }
 
 .login-card {
   position: relative;
-  z-index: 10; /* فوق الـ Canvas للحفاظ على إمكانية الكتابة والضغط */
+  z-index: 10; 
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   padding: 40px;
@@ -484,7 +483,6 @@
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
 }
 
-/* ================= تنسيقات صفحة الفحص اليدوي (Manual Test) ================= */
 .workspace-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -596,7 +594,6 @@
   margin-top: 8px;
 }
 
-/* ================= PUBLIC PAGES (LANDING, LOGIN, REGISTER) ================= */
 .public-container {
   position: relative;
   min-height: 100vh;
@@ -747,12 +744,11 @@
 
 .btn-primary:hover {
   background: #dc2626;
-  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5); /* تأثير توهج سيبراني أنيق */
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5); 
   transform: translateY(-1px);
 }
 
 
-/* دعم اللغة العربية والاتجاه من اليمين لليسار */
 [dir="rtl"] {
   font-family: 'Tajawal', 'Cairo', sans-serif;
 }
@@ -772,13 +768,11 @@
   flex-direction: row-reverse;
 }
 
-/* ================= توحيد الهوية (اللون البنفسجي السيبراني) ================= */
 :root {
   --primary-purple: #8b5cf6; 
   --primary-purple-hover: #7c3aed;
 }
 
-/* تعديلات صفحة الهبوط لتصبح بنفسجية */
 .hero-badge {
   background: rgba(139, 92, 246, 0.1) !important;
   color: var(--primary-purple) !important;
@@ -802,12 +796,10 @@
   color: var(--primary-purple) !important;
 }
 
-/* تعديل ألوان الروابط في صفحة الدخول */
 .auth-switch span {
   color: var(--primary-purple) !important;
 }
 
-/* 💡 لون خاص لتصنيف الهلوسة (برتقالي) */
 .status-hallucination-triggered {
   background-color: rgba(245, 158, 11, 0.1) !important;
   color: #f59e0b !important;

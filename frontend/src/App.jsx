@@ -4,17 +4,14 @@ import { Toaster, toast } from 'react-hot-toast';
 import { translations } from './translations';
 import './App.css';
 
-// 💡 تم وضع المتغير هنا بشكل صحيح بعد الـ imports وقبل دالة App لضمان نجاح الـ Build
-const API_BASE_URL = "https://redshield-cvf2.onrender.com";
+const API_BASE_URL = "http://localhost:8000";
 
 function App() {
-  // ================= 1. الحالات (States) الأساسية =================
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
   const [publicView, setPublicView] = useState('landing'); 
   const [userRole, setUserRole] = useState(parseInt(localStorage.getItem('role_id')) || 2);
   const [currentPage, setCurrentPage] = useState('scenarios'); 
   
-  // إدارة اللغة والترجمة
   const [lang, setLang] = useState(localStorage.getItem('lang') || 'en');
   const t = (key) => translations[lang][key] || key;
 
@@ -25,14 +22,12 @@ function App() {
 
   const toggleLang = () => setLang(lang === 'en' ? 'ar' : 'en');
   
-  // بيانات التسجيل والدخول
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
   
-  // بيانات الاختبار والسيناريوهات
   const [selectedModelId, setSelectedModelId] = useState(1);
   const [selectedScenarioId, setSelectedScenarioId] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -43,14 +38,12 @@ function App() {
   const [evaluationLabel, setEvaluationLabel] = useState('');
   const [currentTestRunId, setCurrentTestRunId] = useState(null);
   
-  // حالة نافذة عرض الرد (Modal)
   const [viewResponseModal, setViewResponseModal] = useState({ isOpen: false, data: null });
   
   const [newScenario, setNewScenario] = useState({ name: '', category: 'Jailbreaking', severity: 'High', prompt: '' });
   const [scenarios, setScenarios] = useState([]);
   const [recentTests, setRecentTests] = useState([]);
 
-  // ================= 2. دوال جلب البيانات =================
   const fetchScenarios = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -88,7 +81,6 @@ function App() {
     return scen ? scen.title : `Scenario #${id} (Deleted)`;
   };
 
-  // ================= 3. تأثير الخلفية العصبية =================
   useEffect(() => {
     if (isLoggedIn) return; 
     const canvas = document.getElementById('login-canvas');
@@ -143,7 +135,6 @@ function App() {
     return () => cancelAnimationFrame(animationFrameId);
   }, [isLoggedIn, publicView]);
 
-  // ================= 4. دوال المصادقة =================
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
@@ -184,7 +175,6 @@ function App() {
     toast.success(lang === 'ar' ? 'تم تسجيل الخروج' : 'Logged out');
   };
 
-  // ================= 5. دوال العمليات =================
   const handleAddScenario = async (e) => {
     e.preventDefault();
     const toastId = toast.loading(lang === 'ar' ? 'جاري الحفظ...' : 'Saving...');
@@ -300,7 +290,6 @@ function App() {
     } catch (error) { toast.error("Error", { id: toastId }); }
   };
 
-  // ================= 6. الصفحات العامة =================
   if (!isLoggedIn) {
     return (
       <div className="public-container">
@@ -367,7 +356,6 @@ function App() {
     );
   }
 
-  // ================= 7. لوحة التحكم =================
   return (
     <div className="dashboard-layout">
       <Toaster position="bottom-right" reverseOrder={false} />

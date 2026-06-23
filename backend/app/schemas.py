@@ -2,9 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime
 
-# ==========================================
 # 1.(Role Schemas)
-# ==========================================
 class RoleBase(BaseModel):
     name: str
 
@@ -18,14 +16,11 @@ class RoleResponse(RoleBase):
         from_attributes = True
 
 
-# ==========================================
 # 2. (User Schemas)
-# ==========================================
 class UserBase(BaseModel):
     full_name: str
     email: EmailStr
 
-# يستخدم عند تسجيل مستخدم جديد (نطلب كلمة المرور)
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, description="كلمة المرور يجب ألا تقل عن 6 خانات")
     role_id: Optional[int] = None
@@ -40,9 +35,7 @@ class UserResponse(UserBase):
         from_attributes = True
 
 
-# ==========================================
 # 3.(Attack Scenario Schemas)
-# ==========================================
 class AttackScenarioBase(BaseModel):
     title: str
     category: str
@@ -62,9 +55,7 @@ class AttackScenarioResponse(AttackScenarioBase):
         from_attributes = True
 
 
-# ==========================================
 # 4.(Test Run Schemas)
-# ==========================================
 class TestRunBase(BaseModel):
     scenario_id: int
     model_id: int
@@ -78,21 +69,17 @@ class TestRunResponse(TestRunBase):
     status: Optional[str] = None  
     executed_by: Optional[int]
     created_at: datetime
-    ai_response: Optional[str] = None # <== أضف هذا السطر
+    ai_response: Optional[str] = None 
 
     class Config:
         from_attributes = True
 
-# ==========================================
 # 5.(Token Schemas)
-# ==========================================
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-# ==========================================
 # 6.(AI Models Schemas)
-# ==========================================
 class AIModelBase(BaseModel):
     name: str
     version: str
@@ -110,9 +97,7 @@ class AIModelResponse(AIModelBase):
         from_attributes = True
 
 
-# ==========================================
 # 7.(Evaluations Schemas)
-# ==========================================
 class EvaluationBase(BaseModel):
     test_run_id: int
     label: str
@@ -132,9 +117,7 @@ class EvaluationResponse(EvaluationBase):
 
 
 
-# ==========================================
 # 8.(AI Simulation Request Schema)
-# ==========================================
 class PromptRequest(BaseModel):
     prompt: str
     model_name: str

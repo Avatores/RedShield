@@ -5,9 +5,8 @@ from app.db.database import get_db
 from app.models import User
 from app.core.security import verify_password, create_access_token
 
-router = APIRouter(tags=["المصادقة (Authentication)"])
+router = APIRouter(tags=["(Authentication)"])
 
-# أزلنا response_model=Token لكي يسمح FastAPI بإرسال role_id للواجهة بحرية
 @router.post("/login")
 def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     
@@ -27,7 +26,6 @@ def login(user_credentials: OAuth2PasswordRequestForm = Depends(), db: Session =
 
     access_token = create_access_token(data={"user_id": user.id})
     
-    # 💡 التعديل هنا: قمنا بإضافة role_id في الرد
     return {
         "access_token": access_token, 
         "token_type": "bearer",
