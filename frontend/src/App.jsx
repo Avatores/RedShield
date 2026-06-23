@@ -212,7 +212,45 @@ function App() {
           <button onClick={() => { toast.dismiss(tId.id); confirmDeleteScenario(id); }} style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>{t('deleteBtn') || 'Delete'}</button>
         </div>
       </div>
-    ), { id: 'delete-modal', duration: Infinity, position: 'top-center', style: { background: '#18181b', border: '1px solid #3f3f46', color: '#fff', marginTop: '35vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '20px' } });
+    ), { id: 'delete-scen-modal', duration: Infinity, position: 'top-center', style: { background: '#18181b', border: '1px solid #3f3f46', color: '#fff', marginTop: '35vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '20px' } });
+  };
+
+  const confirmDeleteTestRun = async (id) => {
+    const toastId = toast.loading(lang === 'ar' ? 'جاري الحذف...' : 'Deleting log...');
+    try {
+      const response = await fetch(`${API_BASE_URL}/test-runs/${id}`, {
+        method: 'DELETE',
+        headers: { 
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (response.ok) {
+        await fetchTestRuns();
+        toast.success(lang === 'ar' ? 'تم حذف السجل بنجاح!' : 'Log deleted successfully!', { id: toastId });
+      } else {
+        toast.error('Failed to delete log', { id: toastId });
+      }
+    } catch (error) {
+      toast.error('Server error', { id: toastId });
+    }
+  };
+
+  const handleDeleteTestRun = (id) => {
+    toast((tId) => (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '250px', textAlign: lang === 'ar' ? 'right' : 'left', direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
+        <p style={{ margin: 0, fontWeight: 'bold' }}>{lang === 'ar' ? 'هل أنت متأكد من حذف هذا السجل؟' : 'Delete log?'}</p>
+        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
+          <button onClick={() => toast.dismiss(tId.id)} style={{ padding: '5px 10px', background: 'transparent', color: '#9ca3af', border: '1px solid #4b5563', borderRadius: '4px', cursor: 'pointer' }}>
+            {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+          </button>
+          <button onClick={() => { toast.dismiss(tId.id); confirmDeleteTestRun(id); }} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+            {lang === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete'}
+          </button>
+        </div>
+      </div>
+    ), { id: 'delete-single-modal', duration: Infinity, position: 'top-center', style: { background: '#18181b', border: '1px solid #3f3f46', color: '#fff', marginTop: '35vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '20px' } });
   };
 
   const confirmDeleteAllTestRuns = async () => {
@@ -224,7 +262,7 @@ function App() {
       });
       
       if (response.ok) { 
-        fetchTestRuns(); // تحديث الجدول ليصبح فارغاً
+        await fetchTestRuns();
         toast.success(lang === 'ar' ? 'تم تنظيف قاعدة البيانات بنجاح!' : 'All logs cleared!', { id: toastId }); 
       } else { 
         toast.error('Error deleting logs', { id: toastId }); 
@@ -250,21 +288,6 @@ function App() {
         </div>
       </div>
     ), { id: 'delete-all-modal', duration: Infinity, position: 'top-center', style: { background: '#18181b', border: '1px solid #3f3f46', color: '#fff', marginTop: '35vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '20px' } });
-  };
-
-  const handleDeleteTestRun = (id) => {
-    toast((tId) => (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', minWidth: '300px', textAlign: lang === 'ar' ? 'right' : 'left', direction: lang === 'ar' ? 'rtl' : 'ltr' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}>
-          <AlertTriangle size={22} /> <span style={{ fontWeight: 'bold', fontSize: '16px' }}>{t('confirmTitle') || 'Confirm'}</span>
-        </div>
-        <span style={{ color: '#d1d5db', fontSize: '14px', lineHeight: '1.5' }}>{t('confirmDeleteLog') || 'Delete log?'}</span>
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '5px' }}>
-          <button onClick={() => toast.dismiss(tId.id)} style={{ padding: '8px 16px', background: 'transparent', color: '#9ca3af', border: '1px solid #4b5563', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}>{t('cancel') || 'Cancel'}</button>
-          <button onClick={() => { toast.dismiss(tId.id); confirmDeleteTestRun(id); }} style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>{t('deleteBtn') || 'Delete'}</button>
-        </div>
-      </div>
-    ), { id: 'delete-modal', duration: Infinity, position: 'top-center', style: { background: '#18181b', border: '1px solid #3f3f46', color: '#fff', marginTop: '35vh', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', padding: '20px' } });
   };
 
   const handleAutoScan = async () => {
@@ -326,7 +349,6 @@ function App() {
         } else {
           toast.error('Error saving test run', { id: toastId });
         }
-
       } else {
         setSimulatedResponse("Error"); toast.error('Model error', { id: toastId });
       }
@@ -343,7 +365,11 @@ function App() {
     const toastId = toast.loading('Saving audit log...');
     let riskScore = (label === 'Jailbreak Successful' || label === 'Unsafe') ? 9 : (label === 'Hallucination Triggered') ? 5 : 1;
     try {
-      const response = await fetch(API_BASE_URL + '/evaluations/', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ test_run_id: currentTestRunId, label: label, risk_score: riskScore, notes: `Log: ${label}` }) });
+      const response = await fetch(API_BASE_URL + '/evaluations/', { 
+        method: 'POST', 
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ test_run_id: currentTestRunId, label: label, risk_score: riskScore, notes: `Log: ${label}` }) 
+      });
       if (response.ok) { await fetchTestRuns(); toast.success(`Log Saved: ${label}`, { id: toastId }); } 
       else { toast.error("Error", { id: toastId }); }
     } catch (error) { toast.error("Error", { id: toastId }); }
@@ -539,20 +565,20 @@ function App() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <h2>{t('recentLogs') || 'Logs'}</h2>
                 {userRole === 1 && (
-                <button 
-                  onClick={handleDeleteAllTestRuns}
-                  disabled={recentTests.length === 0}
-                  style={{
-                    background: recentTests.length === 0 ? '#3f3f46' : '#ef4444',
-                    color: recentTests.length === 0 ? '#9ca3af' : 'white',
-                    border: 'none', borderRadius: '6px', padding: '8px 16px', 
-                    cursor: recentTests.length === 0 ? 'not-allowed' : 'pointer',
-                    display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px'
-                  }}
-                >
-                  <Trash2 size={16} /> {lang === 'ar' ? 'مسح جميع السجلات' : 'Clear All Logs'}
-                </button>
-              )}
+                  <button 
+                    onClick={handleDeleteAllTestRuns}
+                    disabled={recentTests.length === 0}
+                    style={{
+                      background: recentTests.length === 0 ? '#3f3f46' : '#ef4444',
+                      color: recentTests.length === 0 ? '#9ca3af' : 'white',
+                      border: 'none', borderRadius: '6px', padding: '8px 16px', 
+                      cursor: recentTests.length === 0 ? 'not-allowed' : 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', fontSize: '14px'
+                    }}
+                  >
+                    <Trash2 size={16} /> {lang === 'ar' ? 'مسح جميع السجلات' : 'Clear All Logs'}
+                  </button>
+                )}
               </div>
               <div className="table-container">
                 <table className="custom-table">
@@ -610,7 +636,6 @@ function App() {
       </main>
     </div>
   );
-  
 }
 
 export default App;

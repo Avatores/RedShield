@@ -47,6 +47,21 @@ def get_all_test_runs(
 
 @router.delete("/all")
 def delete_all_test_runs(db: Session = Depends(get_db)):
+    db.query(db_models.Evaluation).delete(synchronize_session=False)
+    
     db.query(db_models.TestRun).delete(synchronize_session=False)
     db.commit()
     return {"message": "All test runs deleted successfully"}
+
+@router.delete("/{id}")
+def delete_single_test_run(id: int, db: Session = Depends(get_db)):
+    test_run_query = db.query(db_models.TestRun).filter(db_models.TestRun.id == id)
+    if not test_run_query.first():
+        raise HTTPException(status_code=404, detail="Test Run not found")
+        
+    db.query(db_models.Evaluation).filter(db_models.Evaluation.test_run_id == id).delete(synchronize_session=False)
+    
+    # 2. حذف السجل بأمان
+    test_run_query.delete(synchronize_session=False)
+    db.commit()
+    return {"message": "Test run deleted successfully"}
